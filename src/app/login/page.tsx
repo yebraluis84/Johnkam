@@ -3,19 +3,43 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Eye, EyeOff } from "lucide-react";
+import { Building2, Eye, EyeOff, Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type LoginRole = "tenant" | "admin";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<LoginRole>("tenant");
+  const [error, setError] = useState("");
+
+  const defaults = {
+    tenant: { email: "sarah.johnson@email.com", password: "password123" },
+    admin: { email: "admin@mapleheights.com", password: "admin2026" },
+  };
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    // Simulate login
+
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
     setTimeout(() => {
-      router.push("/dashboard");
+      if (role === "admin") {
+        if (email === "admin@mapleheights.com" && password === "admin2026") {
+          router.push("/admin/dashboard");
+        } else {
+          setError("Invalid admin credentials");
+          setLoading(false);
+        }
+      } else {
+        router.push("/dashboard");
+      }
     }, 800);
   }
 
@@ -67,12 +91,52 @@ export default function LoginPage() {
             <span className="text-xl font-bold text-slate-900">TenantHub</span>
           </div>
 
+          {/* Role Toggle */}
+          <div className="flex bg-slate-100 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => { setRole("tenant"); setError(""); }}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition",
+                role === "tenant"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <Building2 className="w-4 h-4" />
+              Tenant
+            </button>
+            <button
+              type="button"
+              onClick={() => { setRole("admin"); setError(""); }}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition",
+                role === "admin"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <Shield className="w-4 h-4" />
+              Admin
+            </button>
+          </div>
+
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Welcome back</h2>
+            <h2 className="text-2xl font-bold text-slate-900">
+              {role === "admin" ? "Admin Login" : "Welcome back"}
+            </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Sign in to your tenant portal
+              {role === "admin"
+                ? "Sign in to the property management portal"
+                : "Sign in to your tenant portal"}
             </p>
           </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -84,9 +148,11 @@ export default function LoginPage() {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 required
-                defaultValue="sarah.johnson@email.com"
+                key={role}
+                defaultValue={defaults[role].email}
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                 placeholder="you@example.com"
               />
@@ -110,9 +176,11 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  defaultValue="password123"
+                  key={`pw-${role}`}
+                  defaultValue={defaults[role].password}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-10"
                   placeholder="Enter your password"
                 />
@@ -136,10 +204,7 @@ export default function LoginPage() {
                 type="checkbox"
                 className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
-              <label
-                htmlFor="remember"
-                className="text-sm text-slate-600"
-              >
+              <label htmlFor="remember" className="text-sm text-slate-600">
                 Remember me
               </label>
             </div>
@@ -147,21 +212,36 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={cn(
+                "w-full py-2.5 px-4 text-white rounded-lg text-sm font-medium focus:ring-2 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed",
+                role === "admin"
+                  ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
+                  : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+              )}
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Contact your property manager
-            </Link>
-          </p>
+          {role === "tenant" && (
+            <p className="text-center text-sm text-slate-500">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/register"
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Contact your property manager
+              </Link>
+            </p>
+          )}
+
+          {role === "admin" && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <p className="text-xs text-slate-500 text-center">
+                Demo credentials: <span className="font-mono text-slate-700">admin@mapleheights.com</span> / <span className="font-mono text-slate-700">admin2026</span>
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
