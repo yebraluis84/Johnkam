@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Filter, Mail, Phone, MoreVertical } from "lucide-react";
-import { tenantAccounts } from "@/lib/admin-data";
+import { useAppState } from "@/lib/app-context";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 
 export default function TenantsPage() {
+  const { tenants: tenantAccounts } = useAppState();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 

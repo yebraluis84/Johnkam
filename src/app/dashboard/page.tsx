@@ -13,11 +13,13 @@ import {
   CreditCard,
   CalendarDays,
 } from "lucide-react";
-import { currentTenant, maintenanceTickets, payments, announcements } from "@/lib/mock-data";
+import { currentTenant, payments, announcements } from "@/lib/mock-data";
+import { useAppState } from "@/lib/app-context";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export default function DashboardPage() {
+  const { tickets: maintenanceTickets } = useAppState();
   const openTickets = maintenanceTickets.filter(
     (t) => t.status !== "completed" && t.status !== "closed"
   ).length;

@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { Search, Filter, CheckCircle2, Clock, AlertTriangle, User } from "lucide-react";
-import { maintenanceTickets } from "@/lib/mock-data";
+import { useAppState } from "@/lib/app-context";
 import { formatDate, cn } from "@/lib/utils";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 
 export default function AdminMaintenancePage() {
+  const { tickets: maintenanceTickets, updateTicket } = useAppState();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -135,8 +136,16 @@ export default function AdminMaintenancePage() {
                 <StatusBadge status={ticket.status} />
                 <PriorityBadge priority={ticket.priority} />
                 {ticket.status !== "completed" && ticket.status !== "closed" && (
-                  <select className="mt-1 text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500 outline-none">
-                    <option>Update Status</option>
+                  <select
+                    className="mt-1 text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500 outline-none"
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        updateTicket(ticket.id, { status: e.target.value as "open" | "in_progress" | "scheduled" | "completed", updatedAt: new Date().toISOString().split("T")[0] });
+                      }
+                    }}
+                  >
+                    <option value="">Update Status</option>
                     <option value="open">Open</option>
                     <option value="in_progress">In Progress</option>
                     <option value="scheduled">Scheduled</option>

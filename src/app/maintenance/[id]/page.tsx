@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Send, Calendar, User, Wrench as WrenchIcon } from "lucide-react";
-import { maintenanceTickets } from "@/lib/mock-data";
+import { useAppState } from "@/lib/app-context";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 
@@ -13,6 +13,7 @@ export default function TicketDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { tickets: maintenanceTickets } = useAppState();
   const ticket = maintenanceTickets.find((t) => t.id === id);
   const [newComment, setNewComment] = useState("");
 

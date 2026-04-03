@@ -9,15 +9,22 @@ import {
   Save,
   Users,
 } from "lucide-react";
-import { propertyInfo } from "@/lib/admin-data";
+import { useAppState } from "@/lib/app-context";
 
 export default function AdminSettingsPage() {
+  const { property: propertyInfo, updateProperty } = useAppState();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    const form = e.target as HTMLFormElement;
+    const name = (form.elements.namedItem("propName") as HTMLInputElement).value;
+    const address = (form.elements.namedItem("propAddress") as HTMLInputElement).value;
+    const city = (form.elements.namedItem("propCity") as HTMLInputElement).value;
+    const totalUnits = parseInt((form.elements.namedItem("propUnits") as HTMLInputElement).value);
+    updateProperty({ name, address, city, totalUnits });
     setTimeout(() => {
       setSaving(false);
       setSaved(true);
@@ -49,6 +56,7 @@ export default function AdminSettingsPage() {
               Property Name
             </label>
             <input
+              name="propName"
               type="text"
               defaultValue={propertyInfo.name}
               className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
@@ -59,6 +67,7 @@ export default function AdminSettingsPage() {
               Address
             </label>
             <input
+              name="propAddress"
               type="text"
               defaultValue={propertyInfo.address}
               className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
@@ -70,6 +79,7 @@ export default function AdminSettingsPage() {
                 City, State, Zip
               </label>
               <input
+                name="propCity"
                 type="text"
                 defaultValue={propertyInfo.city}
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
@@ -80,6 +90,7 @@ export default function AdminSettingsPage() {
                 Total Units
               </label>
               <input
+                name="propUnits"
                 type="number"
                 defaultValue={propertyInfo.totalUnits}
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"

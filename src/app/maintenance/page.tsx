@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { Plus, Search, Filter } from "lucide-react";
 import { useState } from "react";
-import { maintenanceTickets } from "@/lib/mock-data";
+import { useAppState } from "@/lib/app-context";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 
 export default function MaintenancePage() {
+  const { tickets: maintenanceTickets } = useAppState();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 

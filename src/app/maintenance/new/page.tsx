@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload, X } from "lucide-react";
+import { useAppState } from "@/lib/app-context";
 
 const categories = [
   "Plumbing",
@@ -19,6 +20,7 @@ const categories = [
 
 export default function NewMaintenancePage() {
   const router = useRouter();
+  const { addTicket } = useAppState();
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<string[]>([]);
 
@@ -36,9 +38,29 @@ export default function NewMaintenancePage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+
+    const form = e.target as HTMLFormElement;
+    const title = (form.elements.namedItem("title") as HTMLInputElement).value;
+    const category = (form.elements.namedItem("category") as HTMLSelectElement).value;
+    const priority = (form.elements.namedItem("priority") as HTMLSelectElement).value as "low" | "medium" | "high" | "urgent";
+    const description = (form.elements.namedItem("description") as HTMLTextAreaElement).value;
+    const today = new Date().toISOString().split("T")[0];
+
+    addTicket({
+      id: `MT-${Math.floor(1000 + Math.random() * 9000)}`,
+      title,
+      category,
+      priority,
+      description,
+      status: "open",
+      createdAt: today,
+      updatedAt: today,
+      comments: [],
+    });
+
     setTimeout(() => {
       router.push("/maintenance");
-    }, 1000);
+    }, 800);
   }
 
   return (

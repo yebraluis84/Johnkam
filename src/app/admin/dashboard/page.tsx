@@ -12,12 +12,13 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
-import { tenantAccounts, propertyInfo } from "@/lib/admin-data";
-import { maintenanceTickets, payments } from "@/lib/mock-data";
+import { useAppState } from "@/lib/app-context";
+import { payments } from "@/lib/mock-data";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export default function AdminDashboardPage() {
+  const { tenants: tenantAccounts, tickets: maintenanceTickets, property: propertyInfo } = useAppState();
   const activeTenants = tenantAccounts.filter((t) => t.status === "active").length;
   const delinquent = tenantAccounts.filter((t) => t.status === "delinquent").length;
   const openTickets = maintenanceTickets.filter(
