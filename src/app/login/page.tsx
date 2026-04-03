@@ -20,7 +20,7 @@ export default function LoginPage() {
     admin: { email: "admin@mapleheights.com", password: "admin2026" },
   };
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -29,18 +29,33 @@ export default function LoginPage() {
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
-    setTimeout(() => {
-      if (role === "admin") {
-        if (email === "admin@mapleheights.com" && password === "admin2026") {
-          router.push("/admin/dashboard");
-        } else {
-          setError("Invalid admin credentials");
-          setLoading(false);
-        }
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid credentials");
+        setLoading(false);
+        return;
+      }
+
+      // Store user info in localStorage for session
+      localStorage.setItem("user", JSON.stringify(data));
+
+      if (data.role === "ADMIN") {
+        router.push("/admin/dashboard");
       } else {
         router.push("/dashboard");
       }
-    }, 800);
+    } catch {
+      setError("Connection error. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (

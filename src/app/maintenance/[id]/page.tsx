@@ -34,16 +34,22 @@ export default function TicketDetailPage({
     );
   }
 
-  const roleIcons = {
+  const roleIcons: Record<string, React.ReactNode> = {
     tenant: <User className="w-4 h-4" />,
+    TENANT: <User className="w-4 h-4" />,
     manager: <Calendar className="w-4 h-4" />,
+    ADMIN: <Calendar className="w-4 h-4" />,
     maintenance: <WrenchIcon className="w-4 h-4" />,
+    MAINTENANCE: <WrenchIcon className="w-4 h-4" />,
   };
 
-  const roleColors = {
+  const roleColors: Record<string, string> = {
     tenant: "bg-blue-100 text-blue-700",
+    TENANT: "bg-blue-100 text-blue-700",
     manager: "bg-purple-100 text-purple-700",
+    ADMIN: "bg-purple-100 text-purple-700",
     maintenance: "bg-green-100 text-green-700",
+    MAINTENANCE: "bg-green-100 text-green-700",
   };
 
   return (
@@ -91,7 +97,7 @@ export default function TicketDetailPage({
           <div>
             <p className="text-slate-400 text-xs">Last Updated</p>
             <p className="text-slate-700 font-medium">
-              {formatDate(ticket.updatedAt)}
+              {formatDate(ticket.updatedAt || ticket.createdAt)}
             </p>
           </div>
           {ticket.scheduledDate && (
@@ -128,12 +134,14 @@ export default function TicketDetailPage({
             </div>
           </div>
 
-          {ticket.comments.map((comment) => (
+          {ticket.comments.map((comment) => {
+            const commentRole = comment.role || comment.authorRole || "tenant";
+            return (
             <div key={comment.id} className="p-4 flex items-start gap-3">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${roleColors[comment.role]}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${roleColors[commentRole] || "bg-slate-100 text-slate-700"}`}
               >
-                {roleIcons[comment.role]}
+                {roleIcons[commentRole] || <User className="w-4 h-4" />}
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -141,7 +149,7 @@ export default function TicketDetailPage({
                     {comment.author}
                   </span>
                   <span className="text-xs text-slate-400 capitalize">
-                    {comment.role}
+                    {commentRole.toLowerCase()}
                   </span>
                 </div>
                 <p className="text-sm text-slate-600 mt-1">
@@ -152,7 +160,7 @@ export default function TicketDetailPage({
                 </p>
               </div>
             </div>
-          ))}
+          ); })}
         </div>
 
         {/* Add Comment */}

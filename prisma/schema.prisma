@@ -1,0 +1,260 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  TENANT
+  MAINTENANCE
+}
+
+enum TenantStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+  DELINQUENT
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  SCHEDULED
+  COMPLETED
+  CLOSED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  ACH
+  CHECK
+}
+
+enum PaymentStatus {
+  COMPLETED
+  PENDING
+  FAILED
+}
+
+enum UnitStatus {
+  AVAILABLE
+  RESERVED
+  MAINTENANCE
+  OCCUPIED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole @default(TENANT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant            Tenant?
+  sentMessages      Message[]      @relation("SentMessages")
+  ticketComments    TicketComment[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id          String       @id @default(cuid())
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unitId      String?
+  unit        Unit?        @relation(fields: [unitId], references: [id])
+  leaseStart  DateTime?
+  leaseEnd    DateTime?
+  rentAmount  Float        @default(0)
+  balance     Float        @default(0)
+  status      TenantStatus @default(PENDING)
+  moveInDate  DateTime?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  tickets       MaintenanceTicket[]
+  payments      Payment[]
+  leaseRenewals LeaseRenewal[]
+
+  @@map("tenants")
+}
+
+model Unit {
+  id            String     @id @default(cuid())
+  number        String     @unique
+  floor         Int        @default(1)
+  bedrooms      Int        @default(1)
+  bathrooms     Int        @default(1)
+  sqft          Int        @default(0)
+  rent          Float      @default(0)
+  status        UnitStatus @default(AVAILABLE)
+  availableDate DateTime?
+  features      String[]   @default([])
+  propertyId    String?
+  property      Property?  @relation(fields: [propertyId], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  tenants       Tenant[]
+
+  @@map("units")
+}
+
+model Property {
+  id                  String   @id @default(cuid())
+  name                String
+  address             String
+  city                String
+  totalUnits          Int      @default(0)
+  paymentDueDay       Int      @default(1)
+  lateFeeGraceDays    Int      @default(5)
+  lateFeeAmount       Float    @default(50)
+  acceptCreditCard    Boolean  @default(true)
+  acceptACH           Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  units               Unit[]
+  announcements       Announcement[]
+
+  @@map("properties")
+}
+
+model MaintenanceTicket {
+  id              String         @id @default(cuid())
+  ticketNumber    String         @unique
+  title           String
+  description     String
+  category        String
+  priority        TicketPriority @default(MEDIUM)
+  status          TicketStatus   @default(OPEN)
+  location        String?
+  scheduledDate   DateTime?
+  tenantId        String
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  entryPermission String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  comments        TicketComment[]
+
+  @@map("maintenance_tickets")
+}
+
+model TicketComment {
+  id        String            @id @default(cuid())
+  message   String
+  authorId  String
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  ticketId  String
+  ticket    MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+
+  @@map("ticket_comments")
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  amount             Float
+  description        String
+  method             PaymentMethod
+  status             PaymentStatus @default(PENDING)
+  confirmationNumber String?
+  tenantId           String
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt          DateTime      @default(now())
+
+  @@map("payments")
+}
+
+model LeaseRenewal {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  currentLeaseEnd DateTime
+  newLeaseStart   DateTime
+  newLeaseEnd     DateTime
+  currentRent     Float
+  proposedRent    Float
+  status          String    @default("pending")
+  offeredDate     DateTime?
+  respondedDate   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("lease_renewals")
+}
+
+model Announcement {
+  id         String    @id @default(cuid())
+  title      String
+  message    String
+  priority   String    @default("normal")
+  author     String
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@map("announcements")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@map("messages")
+}
+
+model Conversation {
+  id           String   @id @default(cuid())
+  subject      String
+  participants String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("conversations")
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  fileUrl   String?
+  size      String?
+  tenantId  String?
+  createdAt DateTime @default(now())
+
+  @@map("documents")
+}
+
+model NotificationLog {
+  id           String   @id @default(cuid())
+  templateName String
+  recipient    String
+  email        String
+  subject      String
+  status       String   @default("pending")
+  channel      String   @default("email")
+  createdAt    DateTime @default(now())
+
+  @@map("notification_logs")
+}

@@ -1,0 +1,189 @@
+import { Resend } from "resend";
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY || "re_placeholder");
+}
+
+const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev";
+
+export async function sendTenantInvite(params: {
+  to: string;
+  tenantName: string;
+  unit: string;
+  propertyName: string;
+  inviteCode?: string;
+}) {
+  const { to, tenantName, unit, propertyName, inviteCode } = params;
+  const portalUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  try {
+    const { data, error } = await getResend().emails.send({
+      from: `${propertyName} <${FROM_EMAIL}>`,
+      to: [to],
+      subject: `Welcome to ${propertyName} - Your Tenant Portal Invitation`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #e2e8f0;">
+            <h1 style="color: #0f172a; margin: 0;">🏢 ${propertyName}</h1>
+            <p style="color: #64748b; margin: 5px 0 0;">Tenant Portal</p>
+          </div>
+
+          <div style="padding: 30px 0;">
+            <h2 style="color: #0f172a;">Welcome, ${tenantName}!</h2>
+            <p style="color: #475569; line-height: 1.6;">
+              You've been invited to join the tenant portal for <strong>${propertyName}</strong>.
+              Your assigned unit is <strong>${unit}</strong>.
+            </p>
+
+            <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 5px; color: #64748b; font-size: 14px;">Your Invitation Code:</p>
+              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #0f172a; letter-spacing: 2px;">
+                ${inviteCode || "WELCOME2026"}
+              </p>
+            </div>
+
+            <p style="color: #475569; line-height: 1.6;">
+              With the tenant portal you can:
+            </p>
+            <ul style="color: #475569; line-height: 1.8;">
+              <li>Pay rent online via credit card or bank transfer</li>
+              <li>Submit and track maintenance requests</li>
+              <li>Access your lease documents</li>
+              <li>Communicate with property management</li>
+              <li>View community announcements</li>
+            </ul>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${portalUrl}/register"
+                 style="background: #2563eb; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+                Create Your Account
+              </a>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 15px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 12px;">
+              ${propertyName} &middot; Powered by TenantHub
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Email send error:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, id: data?.id };
+  } catch (err) {
+    console.error("Email service error:", err);
+    return { success: false, error: "Email service unavailable" };
+  }
+}
+
+export async function sendPaymentConfirmation(params: {
+  to: string;
+  tenantName: string;
+  amount: number;
+  method: string;
+  confirmationNumber: string;
+  propertyName: string;
+}) {
+  const { to, tenantName, amount, method, confirmationNumber, propertyName } = params;
+
+  try {
+    const { data, error } = await getResend().emails.send({
+      from: `${propertyName} <${FROM_EMAIL}>`,
+      to: [to],
+      subject: `Payment Confirmation - $${amount.toFixed(2)}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #0f172a;">Payment Received</h1>
+          <p style="color: #475569;">Hi ${tenantName}, your payment has been processed successfully.</p>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <p style="margin: 0 0 10px; color: #166534; font-size: 24px; font-weight: bold;">$${amount.toFixed(2)}</p>
+            <p style="margin: 0; color: #166534;">Confirmation: ${confirmationNumber}</p>
+            <p style="margin: 5px 0 0; color: #15803d; font-size: 14px;">Method: ${method}</p>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px; text-align: center;">${propertyName} &middot; Powered by TenantHub</p>
+        </div>
+      `,
+    });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, id: data?.id };
+  } catch (err) {
+    console.error("Email service error:", err);
+    return { success: false, error: "Email service unavailable" };
+  }
+}
+
+export async function sendMaintenanceUpdate(params: {
+  to: string;
+  tenantName: string;
+  ticketNumber: string;
+  title: string;
+  newStatus: string;
+  propertyName: string;
+}) {
+  const { to, tenantName, ticketNumber, title, newStatus, propertyName } = params;
+
+  try {
+    const { data, error } = await getResend().emails.send({
+      from: `${propertyName} <${FROM_EMAIL}>`,
+      to: [to],
+      subject: `Maintenance Update - ${ticketNumber}: ${title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #0f172a;">Maintenance Update</h1>
+          <p style="color: #475569;">Hi ${tenantName}, your maintenance request has been updated.</p>
+          <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold; color: #0f172a;">${ticketNumber}: ${title}</p>
+            <p style="margin: 10px 0 0; color: #2563eb; font-weight: 600;">New Status: ${newStatus.replace("_", " ").toUpperCase()}</p>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px; text-align: center;">${propertyName} &middot; Powered by TenantHub</p>
+        </div>
+      `,
+    });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, id: data?.id };
+  } catch (err) {
+    console.error("Email service error:", err);
+    return { success: false, error: "Email service unavailable" };
+  }
+}
+
+export async function sendCustomNotification(params: {
+  to: string[];
+  subject: string;
+  message: string;
+  propertyName: string;
+}) {
+  const { to, subject, message, propertyName } = params;
+
+  try {
+    const results = await Promise.all(
+      to.map((email) =>
+        getResend().emails.send({
+          from: `${propertyName} <${FROM_EMAIL}>`,
+          to: [email],
+          subject,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #0f172a;">${subject}</h1>
+              <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">${message}</div>
+              <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 30px;">${propertyName} &middot; Powered by TenantHub</p>
+            </div>
+          `,
+        })
+      )
+    );
+
+    return { success: true, sent: results.length };
+  } catch (err) {
+    console.error("Email service error:", err);
+    return { success: false, error: "Email service unavailable" };
+  }
+}
