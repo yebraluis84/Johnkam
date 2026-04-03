@@ -14,14 +14,22 @@ import {
   Menu,
   X,
   Shield,
+  MessageSquare,
+  Home,
+  BarChart3,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/tenants", label: "Tenants", icon: Users },
+  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/admin/payments", label: "Payments", icon: DollarSign },
+  { href: "/admin/vacancies", label: "Vacancies", icon: Home },
+  { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
