@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 export async function POST() {
   try {
-    // Drop all existing tables in correct order (respecting foreign keys)
+    // Drop all existing tables and types
     const dropStatements = [
       'DROP TABLE IF EXISTS "_ConversationParticipants" CASCADE',
       'DROP TABLE IF EXISTS "notification_logs" CASCADE',
@@ -25,6 +25,28 @@ export async function POST() {
       await prisma.$executeRawUnsafe(sql);
     }
 
+    // Create enums
+    const enumStatements = [
+      'DROP TYPE IF EXISTS "UserRole" CASCADE',
+      'DROP TYPE IF EXISTS "TenantStatus" CASCADE',
+      'DROP TYPE IF EXISTS "TicketPriority" CASCADE',
+      'DROP TYPE IF EXISTS "TicketStatus" CASCADE',
+      'DROP TYPE IF EXISTS "PaymentMethod" CASCADE',
+      'DROP TYPE IF EXISTS "PaymentStatus" CASCADE',
+      'DROP TYPE IF EXISTS "UnitStatus" CASCADE',
+      "CREATE TYPE \"UserRole\" AS ENUM ('ADMIN', 'TENANT', 'MAINTENANCE')",
+      "CREATE TYPE \"TenantStatus\" AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'DELINQUENT')",
+      "CREATE TYPE \"TicketPriority\" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT')",
+      "CREATE TYPE \"TicketStatus\" AS ENUM ('OPEN', 'IN_PROGRESS', 'SCHEDULED', 'COMPLETED', 'CLOSED')",
+      "CREATE TYPE \"PaymentMethod\" AS ENUM ('CREDIT_CARD', 'ACH', 'CHECK')",
+      "CREATE TYPE \"PaymentStatus\" AS ENUM ('COMPLETED', 'PENDING', 'FAILED')",
+      "CREATE TYPE \"UnitStatus\" AS ENUM ('AVAILABLE', 'RESERVED', 'MAINTENANCE', 'OCCUPIED')",
+    ];
+
+    for (const sql of enumStatements) {
+      await prisma.$executeRawUnsafe(sql);
+    }
+
     // Create tables with exact column names Prisma expects (camelCase)
     await prisma.$executeRawUnsafe(`
       CREATE TABLE "users" (
@@ -33,7 +55,7 @@ export async function POST() {
         "passwordHash" TEXT NOT NULL,
         "name" TEXT NOT NULL,
         "phone" TEXT,
-        "role" TEXT NOT NULL DEFAULT 'TENANT',
+        "role" "UserRole" NOT NULL DEFAULT 'TENANT',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "users_pkey" PRIMARY KEY ("id")
@@ -68,7 +90,7 @@ export async function POST() {
         "bathrooms" INTEGER NOT NULL DEFAULT 1,
         "sqft" INTEGER NOT NULL DEFAULT 0,
         "rent" DOUBLE PRECISION NOT NULL DEFAULT 0,
-        "status" TEXT NOT NULL DEFAULT 'AVAILABLE',
+        "status" "UnitStatus" NOT NULL DEFAULT 'AVAILABLE',
         "availableDate" TIMESTAMP(3),
         "features" TEXT[] DEFAULT ARRAY[]::TEXT[],
         "propertyId" TEXT,
@@ -89,7 +111,7 @@ export async function POST() {
         "leaseEnd" TIMESTAMP(3),
         "rentAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
         "balance" DOUBLE PRECISION NOT NULL DEFAULT 0,
-        "status" TEXT NOT NULL DEFAULT 'PENDING',
+        "status" "TenantStatus" NOT NULL DEFAULT 'PENDING',
         "moveInDate" TIMESTAMP(3),
         "notes" TEXT,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -108,8 +130,8 @@ export async function POST() {
         "title" TEXT NOT NULL,
         "description" TEXT NOT NULL DEFAULT '',
         "category" TEXT NOT NULL DEFAULT 'General',
-        "priority" TEXT NOT NULL DEFAULT 'MEDIUM',
-        "status" TEXT NOT NULL DEFAULT 'OPEN',
+        "priority" "TicketPriority" NOT NULL DEFAULT 'MEDIUM',
+        "status" "TicketStatus" NOT NULL DEFAULT 'OPEN',
         "location" TEXT,
         "scheduledDate" TIMESTAMP(3),
         "tenantId" TEXT NOT NULL,
@@ -140,8 +162,8 @@ export async function POST() {
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "amount" DOUBLE PRECISION NOT NULL,
         "description" TEXT NOT NULL DEFAULT 'Rent Payment',
-        "method" TEXT NOT NULL DEFAULT 'CREDIT_CARD',
-        "status" TEXT NOT NULL DEFAULT 'PENDING',
+        "method" "PaymentMethod" NOT NULL DEFAULT 'CREDIT_CARD',
+        "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
         "confirmationNumber" TEXT,
         "tenantId" TEXT NOT NULL,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
