@@ -3,45 +3,64 @@ import { prisma } from "@/lib/db";
 
 export async function POST() {
   try {
-    // Create all tables using raw SQL
+    // Drop all existing tables in correct order (respecting foreign keys)
+    const dropStatements = [
+      'DROP TABLE IF EXISTS "_ConversationParticipants" CASCADE',
+      'DROP TABLE IF EXISTS "notification_logs" CASCADE',
+      'DROP TABLE IF EXISTS "documents" CASCADE',
+      'DROP TABLE IF EXISTS "messages" CASCADE',
+      'DROP TABLE IF EXISTS "conversations" CASCADE',
+      'DROP TABLE IF EXISTS "announcements" CASCADE',
+      'DROP TABLE IF EXISTS "lease_renewals" CASCADE',
+      'DROP TABLE IF EXISTS "payments" CASCADE',
+      'DROP TABLE IF EXISTS "ticket_comments" CASCADE',
+      'DROP TABLE IF EXISTS "maintenance_tickets" CASCADE',
+      'DROP TABLE IF EXISTS "tenants" CASCADE',
+      'DROP TABLE IF EXISTS "units" CASCADE',
+      'DROP TABLE IF EXISTS "properties" CASCADE',
+      'DROP TABLE IF EXISTS "users" CASCADE',
+    ];
+
+    for (const sql of dropStatements) {
+      await prisma.$executeRawUnsafe(sql);
+    }
+
+    // Create tables with exact column names Prisma expects (camelCase)
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "users" (
+      CREATE TABLE "users" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "email" TEXT NOT NULL,
-        "password_hash" TEXT NOT NULL,
+        "passwordHash" TEXT NOT NULL,
         "name" TEXT NOT NULL,
         "phone" TEXT,
         "role" TEXT NOT NULL DEFAULT 'TENANT',
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "users_pkey" PRIMARY KEY ("id")
       );
+      CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "users_email_key" ON "users"("email");
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "properties" (
+      CREATE TABLE "properties" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "name" TEXT NOT NULL,
         "address" TEXT NOT NULL DEFAULT '',
         "city" TEXT NOT NULL DEFAULT '',
-        "total_units" INTEGER NOT NULL DEFAULT 0,
-        "payment_due_day" INTEGER NOT NULL DEFAULT 1,
-        "late_fee_grace_days" INTEGER NOT NULL DEFAULT 5,
-        "late_fee_amount" DOUBLE PRECISION NOT NULL DEFAULT 50,
-        "accept_credit_card" BOOLEAN NOT NULL DEFAULT true,
-        "accept_ach" BOOLEAN NOT NULL DEFAULT true,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "totalUnits" INTEGER NOT NULL DEFAULT 0,
+        "paymentDueDay" INTEGER NOT NULL DEFAULT 1,
+        "lateFeeGraceDays" INTEGER NOT NULL DEFAULT 5,
+        "lateFeeAmount" DOUBLE PRECISION NOT NULL DEFAULT 50,
+        "acceptCreditCard" BOOLEAN NOT NULL DEFAULT true,
+        "acceptACH" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "properties_pkey" PRIMARY KEY ("id")
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "units" (
+      CREATE TABLE "units" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "number" TEXT NOT NULL,
         "floor" INTEGER NOT NULL DEFAULT 1,
@@ -50,193 +69,172 @@ export async function POST() {
         "sqft" INTEGER NOT NULL DEFAULT 0,
         "rent" DOUBLE PRECISION NOT NULL DEFAULT 0,
         "status" TEXT NOT NULL DEFAULT 'AVAILABLE',
-        "available_date" TIMESTAMP(3),
+        "availableDate" TIMESTAMP(3),
         "features" TEXT[] DEFAULT ARRAY[]::TEXT[],
-        "property_id" TEXT,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "propertyId" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "units_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "units_property_id_fkey" FOREIGN KEY ("property_id") REFERENCES "properties"("id") ON DELETE SET NULL ON UPDATE CASCADE
+        CONSTRAINT "units_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "properties"("id") ON DELETE SET NULL ON UPDATE CASCADE
       );
+      CREATE UNIQUE INDEX "units_number_key" ON "units"("number");
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "units_number_key" ON "units"("number");
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "tenants" (
+      CREATE TABLE "tenants" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
-        "user_id" TEXT NOT NULL,
-        "unit_id" TEXT,
-        "lease_start" TIMESTAMP(3),
-        "lease_end" TIMESTAMP(3),
-        "rent_amount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "userId" TEXT NOT NULL,
+        "unitId" TEXT,
+        "leaseStart" TIMESTAMP(3),
+        "leaseEnd" TIMESTAMP(3),
+        "rentAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
         "balance" DOUBLE PRECISION NOT NULL DEFAULT 0,
         "status" TEXT NOT NULL DEFAULT 'PENDING',
-        "move_in_date" TIMESTAMP(3),
-        "move_out_date" TIMESTAMP(3),
-        "invite_code" TEXT,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "moveInDate" TIMESTAMP(3),
+        "notes" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "tenants_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "tenants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT "tenants_unit_id_fkey" FOREIGN KEY ("unit_id") REFERENCES "units"("id") ON DELETE SET NULL ON UPDATE CASCADE
+        CONSTRAINT "tenants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "tenants_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "units"("id") ON DELETE SET NULL ON UPDATE CASCADE
       );
+      CREATE UNIQUE INDEX "tenants_userId_key" ON "tenants"("userId");
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "tenants_user_id_key" ON "tenants"("user_id");
-      CREATE UNIQUE INDEX IF NOT EXISTS "tenants_invite_code_key" ON "tenants"("invite_code");
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "maintenance_tickets" (
+      CREATE TABLE "maintenance_tickets" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
-        "ticket_number" TEXT NOT NULL,
+        "ticketNumber" TEXT NOT NULL,
         "title" TEXT NOT NULL,
         "description" TEXT NOT NULL DEFAULT '',
         "category" TEXT NOT NULL DEFAULT 'General',
         "priority" TEXT NOT NULL DEFAULT 'MEDIUM',
         "status" TEXT NOT NULL DEFAULT 'OPEN',
         "location" TEXT,
-        "scheduled_date" TIMESTAMP(3),
-        "entry_permission" TEXT,
-        "tenant_id" TEXT NOT NULL,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "scheduledDate" TIMESTAMP(3),
+        "tenantId" TEXT NOT NULL,
+        "entryPermission" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "maintenance_tickets_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "maintenance_tickets_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        CONSTRAINT "maintenance_tickets_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
+      CREATE UNIQUE INDEX "maintenance_tickets_ticketNumber_key" ON "maintenance_tickets"("ticketNumber");
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "maintenance_tickets_ticket_number_key" ON "maintenance_tickets"("ticket_number");
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "ticket_comments" (
+      CREATE TABLE "ticket_comments" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "message" TEXT NOT NULL,
-        "ticket_id" TEXT NOT NULL,
-        "author_id" TEXT NOT NULL,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "authorId" TEXT NOT NULL,
+        "ticketId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "ticket_comments_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "ticket_comments_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "maintenance_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT "ticket_comments_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        CONSTRAINT "ticket_comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ticket_comments_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "maintenance_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "payments" (
+      CREATE TABLE "payments" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "amount" DOUBLE PRECISION NOT NULL,
         "description" TEXT NOT NULL DEFAULT 'Rent Payment',
         "method" TEXT NOT NULL DEFAULT 'CREDIT_CARD',
         "status" TEXT NOT NULL DEFAULT 'PENDING',
-        "confirmation_number" TEXT,
-        "tenant_id" TEXT NOT NULL,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "confirmationNumber" TEXT,
+        "tenantId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "payments_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "payments_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        CONSTRAINT "payments_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "lease_renewals" (
+      CREATE TABLE "lease_renewals" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
-        "tenant_id" TEXT NOT NULL,
-        "current_end" TIMESTAMP(3) NOT NULL,
-        "proposed_end" TIMESTAMP(3) NOT NULL,
-        "new_rent" DOUBLE PRECISION,
-        "status" TEXT NOT NULL DEFAULT 'PENDING',
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "responded_at" TIMESTAMP(3),
+        "tenantId" TEXT NOT NULL,
+        "currentLeaseEnd" TIMESTAMP(3) NOT NULL,
+        "newLeaseStart" TIMESTAMP(3) NOT NULL,
+        "newLeaseEnd" TIMESTAMP(3) NOT NULL,
+        "currentRent" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "proposedRent" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "status" TEXT NOT NULL DEFAULT 'pending',
+        "offeredDate" TIMESTAMP(3),
+        "respondedDate" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "lease_renewals_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "lease_renewals_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        CONSTRAINT "lease_renewals_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "announcements" (
+      CREATE TABLE "announcements" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "title" TEXT NOT NULL,
         "message" TEXT NOT NULL,
         "priority" TEXT NOT NULL DEFAULT 'normal',
         "author" TEXT NOT NULL DEFAULT 'Property Management',
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT "announcements_pkey" PRIMARY KEY ("id")
+        "propertyId" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "announcements_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "announcements_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "properties"("id") ON DELETE SET NULL ON UPDATE CASCADE
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "conversations" (
+      CREATE TABLE "conversations" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "subject" TEXT NOT NULL DEFAULT '',
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "participants" TEXT[] DEFAULT ARRAY[]::TEXT[],
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "conversations_pkey" PRIMARY KEY ("id")
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "messages" (
+      CREATE TABLE "messages" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+        "conversationId" TEXT NOT NULL,
+        "senderId" TEXT NOT NULL,
         "content" TEXT NOT NULL,
-        "sender_id" TEXT NOT NULL,
-        "conversation_id" TEXT NOT NULL,
         "read" BOOLEAN NOT NULL DEFAULT false,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "messages_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT "messages_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        CONSTRAINT "messages_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "documents" (
+      CREATE TABLE "documents" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
         "name" TEXT NOT NULL,
         "type" TEXT NOT NULL DEFAULT 'other',
-        "url" TEXT NOT NULL DEFAULT '',
+        "fileUrl" TEXT,
         "size" TEXT,
-        "tenant_id" TEXT,
-        "uploaded_by" TEXT,
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT "documents_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "documents_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE SET NULL ON UPDATE CASCADE
+        "tenantId" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "documents_pkey" PRIMARY KEY ("id")
       );
     `);
 
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "notification_logs" (
+      CREATE TABLE "notification_logs" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
-        "template_name" TEXT NOT NULL DEFAULT '',
+        "templateName" TEXT NOT NULL DEFAULT '',
         "recipient" TEXT NOT NULL DEFAULT '',
         "email" TEXT NOT NULL DEFAULT '',
         "subject" TEXT NOT NULL DEFAULT '',
         "status" TEXT NOT NULL DEFAULT 'pending',
         "channel" TEXT NOT NULL DEFAULT 'email',
-        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "notification_logs_pkey" PRIMARY KEY ("id")
       );
     `);
 
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "_ConversationParticipants" (
-        "A" TEXT NOT NULL,
-        "B" TEXT NOT NULL,
-        CONSTRAINT "_ConversationParticipants_AB_unique" UNIQUE ("A", "B"),
-        CONSTRAINT "_ConversationParticipants_A_fkey" FOREIGN KEY ("A") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT "_ConversationParticipants_B_fkey" FOREIGN KEY ("B") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
-      );
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS "_ConversationParticipants_B_index" ON "_ConversationParticipants"("B");
-    `);
-
-    return NextResponse.json({ message: "All tables created successfully!" });
+    return NextResponse.json({ message: "All tables created successfully! Now run /api/seed to load demo data." });
   } catch (error) {
     console.error("Setup error:", error);
     return NextResponse.json(
