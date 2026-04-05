@@ -132,3 +132,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: message === "Server error" ? 500 : 409 });
   }
 }
+
+// DELETE tenant
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+    // Get tenant to find userId and unitId
+    const tenant = await prisma.tenant.findUnique({ where: { id } });
+    if (!tenant) return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+
+    // Free up the unit
+    if (tenant.unitId) {
+      await prisma.unit.update({
+        where: { id: tenant.unitId },
+        data: { status: "AVAILABLE" },
+      });
+    }
+
+    // Delete tenant (cascades tickets, payments, etc.)
+    await prisma.tenant.delete({ where: { id } });
+
+    // Delete the user account too
+    await prisma.user.delete({ where: { id: tenant.userId } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE tenant error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

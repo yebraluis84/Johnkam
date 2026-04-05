@@ -72,7 +72,7 @@ interface AppState {
   loading: boolean;
   addTenant: (tenant: TenantAccount) => void;
   updateTenant: (id: string, data: Partial<TenantAccount>) => void;
-  removeTenant: (id: string) => void;
+  removeTenant: (id: string) => Promise<void>;
   addTicket: (ticket: MaintenanceTicket) => void;
   updateTicket: (id: string, data: Partial<MaintenanceTicket>) => void;
   addVacancy: (unit: VacantUnit) => void;
@@ -201,9 +201,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTenants((prev) => prev.map((t) => (t.id === id ? { ...t, ...data } : t)));
   }, []);
 
-  const removeTenant = useCallback((id: string) => {
+  const removeTenant = useCallback(async (id: string) => {
     setTenants((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+
+    try {
+      await fetch(`/api/tenants?id=${id}`, { method: "DELETE" });
+      fetchData(); // Refresh to update units
+    } catch (err) {
+      console.error("Failed to remove tenant:", err);
+    }
+  }, [fetchData]);
 
   const addTicket = useCallback(async (ticket: MaintenanceTicket) => {
     setTickets((prev) => [ticket, ...prev]);

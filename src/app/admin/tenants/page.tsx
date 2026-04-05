@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Filter, Mail, Phone, MoreVertical } from "lucide-react";
+import { Plus, Search, Filter, Mail, Phone, Trash2 } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 
 export default function TenantsPage() {
-  const { tenants: tenantAccounts } = useAppState();
+  const { tenants: tenantAccounts, removeTenant } = useAppState();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const filtered = tenantAccounts.filter((tenant) => {
     const matchesStatus = statusFilter === "all" || tenant.status === statusFilter;
@@ -151,8 +152,23 @@ export default function TenantsPage() {
               </div>
             </div>
 
-            <div className="mt-3 text-xs text-slate-400">
-              Lease: {formatDate(tenant.leaseStart)} — {formatDate(tenant.leaseEnd)}
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xs text-slate-400">
+                Lease: {formatDate(tenant.leaseStart)} — {formatDate(tenant.leaseEnd)}
+              </span>
+              <button
+                onClick={() => {
+                  if (confirm(`Remove ${tenant.name}? This will delete their account, tickets, and payment history.`)) {
+                    setRemoving(tenant.id);
+                    removeTenant(tenant.id).finally(() => setRemoving(null));
+                  }
+                }}
+                disabled={removing === tenant.id}
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                title="Remove tenant"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}
