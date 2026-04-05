@@ -16,8 +16,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const defaults = {
-    tenant: { email: "sarah.johnson@email.com", password: "password123" },
-    admin: { email: "admin@mapleheights.com", password: "admin2026" },
+    tenant: { email: "", password: "" },
+    admin: { email: "", password: "" },
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -250,13 +250,6 @@ export default function LoginPage() {
             </p>
           )}
 
-          {role === "admin" && (
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-              <p className="text-xs text-slate-500 text-center">
-                Demo credentials: <span className="font-mono text-slate-700">admin@mapleheights.com</span> / <span className="font-mono text-slate-700">admin2026</span>
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>
