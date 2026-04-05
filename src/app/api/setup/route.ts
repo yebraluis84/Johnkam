@@ -113,6 +113,8 @@ export async function POST() {
         "balance" DOUBLE PRECISION NOT NULL DEFAULT 0,
         "status" "TenantStatus" NOT NULL DEFAULT 'PENDING',
         "moveInDate" TIMESTAMP(3),
+        "moveOutDate" TIMESTAMP(3),
+        "inviteCode" TEXT,
         "notes" TEXT,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -121,6 +123,7 @@ export async function POST() {
         CONSTRAINT "tenants_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "units"("id") ON DELETE SET NULL ON UPDATE CASCADE
       );
       CREATE UNIQUE INDEX "tenants_userId_key" ON "tenants"("userId");
+      CREATE UNIQUE INDEX IF NOT EXISTS "tenants_inviteCode_key" ON "tenants"("inviteCode");
     `);
 
     await prisma.$executeRawUnsafe(`

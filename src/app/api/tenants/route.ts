@@ -71,6 +71,9 @@ export async function POST(req: NextRequest) {
       ? await prisma.unit.findUnique({ where: { number: unitNumber } })
       : null;
 
+    // Generate invite code
+    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+
     // Create tenant record
     const tenant = await prisma.tenant.create({
       data: {
@@ -82,6 +85,7 @@ export async function POST(req: NextRequest) {
         balance: 0,
         status: "PENDING",
         moveInDate: moveIn ? new Date(moveIn) : null,
+        inviteCode,
       },
     });
 
@@ -102,6 +106,7 @@ export async function POST(req: NextRequest) {
         tenantName: name,
         unit: unitNumber || "TBD",
         propertyName: property?.name || "TenantHub",
+        inviteCode,
       });
 
       // Log notification
