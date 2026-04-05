@@ -205,10 +205,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTenants((prev) => prev.filter((t) => t.id !== id));
 
     try {
-      await fetch(`/api/tenants?id=${id}`, { method: "DELETE" });
-      fetchData(); // Refresh to update units
+      const res = await fetch(`/api/tenants?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        // Small delay to let the database commit, then refresh
+        await new Promise((r) => setTimeout(r, 500));
+        await fetchData();
+      }
     } catch (err) {
       console.error("Failed to remove tenant:", err);
+      fetchData(); // Revert by re-fetching
     }
   }, [fetchData]);
 
