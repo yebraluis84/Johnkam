@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus, Send } from "lucide-react";
@@ -8,6 +8,14 @@ import { useAppState } from "@/lib/app-context";
 import { formatCurrency } from "@/lib/utils";
 
 export default function NewTenantPage() {
+  return (
+    <Suspense fallback={<div className="p-6 lg:p-8 max-w-3xl mx-auto">Loading...</div>}>
+      <NewTenantForm />
+    </Suspense>
+  );
+}
+
+function NewTenantForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedUnit = searchParams.get("unit") || "";
