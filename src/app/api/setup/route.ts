@@ -75,6 +75,13 @@ export async function POST() {
         "lateFeeAmount" DOUBLE PRECISION NOT NULL DEFAULT 50,
         "acceptCreditCard" BOOLEAN NOT NULL DEFAULT true,
         "acceptACH" BOOLEAN NOT NULL DEFAULT true,
+        "bankName" TEXT NOT NULL DEFAULT '',
+        "bankAccountHolder" TEXT NOT NULL DEFAULT '',
+        "bankRoutingNumber" TEXT NOT NULL DEFAULT '',
+        "bankAccountNumber" TEXT NOT NULL DEFAULT '',
+        "bankAccountType" TEXT NOT NULL DEFAULT 'checking',
+        "zelleEmail" TEXT NOT NULL DEFAULT '',
+        "paymentInstructions" TEXT NOT NULL DEFAULT '',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "properties_pkey" PRIMARY KEY ("id")

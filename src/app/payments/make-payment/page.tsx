@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,18 +10,58 @@ import {
   Lock,
   CheckCircle2,
   ShieldCheck,
+  Landmark,
+  Copy,
+  Check,
 } from "lucide-react";
 import { currentTenant } from "@/lib/mock-data";
 import { formatCurrency, cn } from "@/lib/utils";
 
-type PaymentMethod = "credit_card" | "ach";
+type PaymentMethod = "credit_card" | "ach" | "bank_info";
+
+interface BankInfo {
+  bankName: string;
+  bankAccountHolder: string;
+  bankRoutingNumber: string;
+  bankAccountNumber: string;
+  bankAccountType: string;
+  zelleEmail: string;
+  paymentInstructions: string;
+}
 
 export default function MakePaymentPage() {
   const router = useRouter();
-  const [method, setMethod] = useState<PaymentMethod>("credit_card");
+  const [method, setMethod] = useState<PaymentMethod>("bank_info");
   const [amount, setAmount] = useState(currentTenant.balance.toString());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
+  const [copied, setCopied] = useState("");
+
+  useEffect(() => {
+    fetch("/api/property")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data) {
+          setBankInfo({
+            bankName: data.bankName || "",
+            bankAccountHolder: data.bankAccountHolder || "",
+            bankRoutingNumber: data.bankRoutingNumber || "",
+            bankAccountNumber: data.bankAccountNumber || "",
+            bankAccountType: data.bankAccountType || "checking",
+            zelleEmail: data.zelleEmail || "",
+            paymentInstructions: data.paymentInstructions || "",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  function copyToClipboard(text: string, label: string) {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(""), 2000);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -160,7 +200,38 @@ export default function MakePaymentPage() {
         {/* Payment Method */}
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <h2 className="font-semibold text-slate-900 mb-4">Payment Method</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            <button
+              type="button"
+              onClick={() => setMethod("bank_info")}
+              className={cn(
+                "flex items-center gap-3 p-4 border-2 rounded-lg transition text-left",
+                method === "bank_info"
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-200 hover:border-slate-300"
+              )}
+            >
+              <div
+                className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center",
+                  method === "bank_info" ? "bg-blue-100" : "bg-slate-100"
+                )}
+              >
+                <Landmark
+                  className={cn(
+                    "w-5 h-5",
+                    method === "bank_info" ? "text-blue-600" : "text-slate-500"
+                  )}
+                />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-900">
+                  Bank Transfer / Zelle
+                </p>
+                <p className="text-xs text-slate-500">Direct to landlord</p>
+              </div>
+            </button>
+
             <button
               type="button"
               onClick={() => setMethod("credit_card")}
@@ -229,6 +300,88 @@ export default function MakePaymentPage() {
               </div>
             </button>
           </div>
+
+          {/* Bank Transfer Info */}
+          {method === "bank_info" && (
+            <div className="space-y-4">
+              {bankInfo && (bankInfo.bankName || bankInfo.zelleEmail) ? (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-blue-900 mb-3">Send payment to:</h3>
+                    {bankInfo.bankName && (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-blue-600">Bank</p>
+                            <p className="text-sm font-medium text-blue-900">{bankInfo.bankName}</p>
+                          </div>
+                        </div>
+                        {bankInfo.bankAccountHolder && (
+                          <div>
+                            <p className="text-xs text-blue-600">Account Holder</p>
+                            <p className="text-sm font-medium text-blue-900">{bankInfo.bankAccountHolder}</p>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-3">
+                          {bankInfo.bankRoutingNumber && (
+                            <div>
+                              <p className="text-xs text-blue-600">Routing Number</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-mono font-medium text-blue-900">{bankInfo.bankRoutingNumber}</p>
+                                <button type="button" onClick={() => copyToClipboard(bankInfo.bankRoutingNumber, "routing")} className="text-blue-500 hover:text-blue-700">
+                                  {copied === "routing" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {bankInfo.bankAccountNumber && (
+                            <div>
+                              <p className="text-xs text-blue-600">Account Number</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-mono font-medium text-blue-900">{bankInfo.bankAccountNumber}</p>
+                                <button type="button" onClick={() => copyToClipboard(bankInfo.bankAccountNumber, "account")} className="text-blue-500 hover:text-blue-700">
+                                  {copied === "account" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {bankInfo.bankAccountType && (
+                          <div>
+                            <p className="text-xs text-blue-600">Account Type</p>
+                            <p className="text-sm font-medium text-blue-900 capitalize">{bankInfo.bankAccountType}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {bankInfo.zelleEmail && (
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <p className="text-xs text-blue-600">Zelle</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-blue-900">{bankInfo.zelleEmail}</p>
+                          <button type="button" onClick={() => copyToClipboard(bankInfo.zelleEmail, "zelle")} className="text-blue-500 hover:text-blue-700">
+                            {copied === "zelle" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {bankInfo.paymentInstructions && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <p className="text-xs font-semibold text-amber-800 mb-1">Payment Instructions</p>
+                      <p className="text-sm text-amber-700">{bankInfo.paymentInstructions}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 text-center">
+                  <Landmark className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm text-slate-500">Bank account information has not been set up yet.</p>
+                  <p className="text-xs text-slate-400 mt-1">Please contact your property manager for payment details.</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Credit Card Fields */}
           {method === "credit_card" && (

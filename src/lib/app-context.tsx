@@ -62,6 +62,13 @@ export interface PropertyInfo {
   totalMonthlyRevenue: number;
   collectedThisMonth: number;
   pendingPayments: number;
+  bankName?: string;
+  bankAccountHolder?: string;
+  bankRoutingNumber?: string;
+  bankAccountNumber?: string;
+  bankAccountType?: string;
+  zelleEmail?: string;
+  paymentInstructions?: string;
 }
 
 interface AppState {

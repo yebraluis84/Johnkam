@@ -127,6 +127,13 @@ model Property {
   lateFeeAmount       Float    @default(50)
   acceptCreditCard    Boolean  @default(true)
   acceptACH           Boolean  @default(true)
+  bankName            String   @default("")
+  bankAccountHolder   String   @default("")
+  bankRoutingNumber   String   @default("")
+  bankAccountNumber   String   @default("")
+  bankAccountType     String   @default("checking")
+  zelleEmail          String   @default("")
+  paymentInstructions String   @default("")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

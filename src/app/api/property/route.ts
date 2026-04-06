@@ -19,6 +19,13 @@ export async function GET() {
       lateFeeAmount: property.lateFeeAmount,
       acceptCreditCard: property.acceptCreditCard,
       acceptACH: property.acceptACH,
+      bankName: property.bankName,
+      bankAccountHolder: property.bankAccountHolder,
+      bankRoutingNumber: property.bankRoutingNumber,
+      bankAccountNumber: property.bankAccountNumber,
+      bankAccountType: property.bankAccountType,
+      zelleEmail: property.zelleEmail,
+      paymentInstructions: property.paymentInstructions,
     });
   } catch (error) {
     console.error("GET property error:", error);
@@ -29,7 +36,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, name, address, city, totalUnits, paymentDueDay, lateFeeGraceDays, lateFeeAmount, acceptCreditCard, acceptACH } = body;
+    const { id, name, address, city, totalUnits, paymentDueDay, lateFeeGraceDays, lateFeeAmount, acceptCreditCard, acceptACH, bankName, bankAccountHolder, bankRoutingNumber, bankAccountNumber, bankAccountType, zelleEmail, paymentInstructions } = body;
 
     const data: Record<string, unknown> = {};
     if (name !== undefined) data.name = name;
@@ -41,6 +48,13 @@ export async function PUT(req: NextRequest) {
     if (lateFeeAmount !== undefined) data.lateFeeAmount = lateFeeAmount;
     if (acceptCreditCard !== undefined) data.acceptCreditCard = acceptCreditCard;
     if (acceptACH !== undefined) data.acceptACH = acceptACH;
+    if (bankName !== undefined) data.bankName = bankName;
+    if (bankAccountHolder !== undefined) data.bankAccountHolder = bankAccountHolder;
+    if (bankRoutingNumber !== undefined) data.bankRoutingNumber = bankRoutingNumber;
+    if (bankAccountNumber !== undefined) data.bankAccountNumber = bankAccountNumber;
+    if (bankAccountType !== undefined) data.bankAccountType = bankAccountType;
+    if (zelleEmail !== undefined) data.zelleEmail = zelleEmail;
+    if (paymentInstructions !== undefined) data.paymentInstructions = paymentInstructions;
 
     let property;
     if (id) {
