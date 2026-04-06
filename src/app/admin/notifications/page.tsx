@@ -248,7 +248,7 @@ export default function NotificationsPage() {
               <option>All Tenants (21)</option>
               <option>Active Tenants (18)</option>
               <option>Delinquent Tenants (1)</option>
-              <option>Sarah Johnson - Unit 4B</option>
+              <option>Select a tenant...</option>
               <option>Marcus Chen - Unit 2A</option>
               <option>Emily Rodriguez - Unit 6C</option>
               <option>James Okonkwo - Unit 1D</option>

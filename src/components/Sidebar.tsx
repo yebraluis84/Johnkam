@@ -16,7 +16,7 @@ import {
   MessageSquare,
   RefreshCw,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -33,6 +33,14 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState({ name: "", unit: "" });
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setUser({ name: stored.name || "", unit: stored.unit || "" });
+    } catch {}
+  }, []);
 
   return (
     <>
@@ -80,12 +88,12 @@ export default function Sidebar() {
         {/* Tenant info */}
         <div className="px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold">
-              SJ
+            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white">
+              {user.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "?"}
             </div>
             <div>
-              <p className="text-sm font-medium">Sarah Johnson</p>
-              <p className="text-xs text-slate-400">Unit 4B</p>
+              <p className="text-sm font-medium">{user.name || "Loading..."}</p>
+              {user.unit && <p className="text-xs text-slate-400">Unit {user.unit}</p>}
             </div>
           </div>
         </div>

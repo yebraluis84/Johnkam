@@ -127,7 +127,7 @@ export default function AdminMaintenancePage() {
                     )}
                     <span className="flex items-center gap-1 text-xs text-slate-400">
                       <User className="w-3 h-3" />
-                      Unit 4B — Sarah Johnson
+                      {ticket.tenantName ? `${ticket.tenantName}` : "Unassigned"}
                     </span>
                   </div>
                 </div>

@@ -75,7 +75,7 @@ export default function AdminMessagesPage() {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">To</label>
             <select className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
-              <option>Sarah Johnson - Unit 4B</option>
+              <option>Select a tenant...</option>
               <option>Marcus Chen - Unit 2A</option>
               <option>Emily Rodriguez - Unit 6C</option>
               <option>James Okonkwo - Unit 1D</option>
@@ -112,7 +112,7 @@ export default function AdminMessagesPage() {
           </div>
           <div className="flex-1 overflow-y-auto">
             {filtered.map((conv) => {
-              const tenantName = conv.participants.find((p) => p !== "Property Management" && p !== "Mike Torres" && p !== "Maintenance Team") || conv.participants[0];
+              const tenantName = conv.participants.find((p) => p !== "Property Management" && p !== "Maintenance Team") || conv.participants[0];
               return (
                 <button
                   key={conv.id}

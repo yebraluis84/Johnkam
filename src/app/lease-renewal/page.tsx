@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   RefreshCw,
   Calendar,
@@ -16,7 +16,16 @@ import { formatCurrency, formatDate, cn } from "@/lib/utils";
 
 export default function LeaseRenewalPage() {
   const [showAcceptModal, setShowAcceptModal] = useState(false);
-  const myRenewal = leaseRenewals.find((r) => r.tenantName === "Sarah Johnson");
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setUserName(stored.name || "");
+    } catch {}
+  }, []);
+
+  const myRenewal = leaseRenewals.find((r) => r.tenantName === userName || r.tenantName === "Sarah Johnson");
 
   const daysUntilExpiry = Math.ceil(
     (new Date(currentTenant.leaseEnd).getTime() - new Date().getTime()) /

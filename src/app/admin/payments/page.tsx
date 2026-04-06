@@ -18,7 +18,7 @@ export default function AdminPaymentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const allPayments = [
-    ...payments.map((p) => ({ ...p, tenant: "Sarah Johnson", unit: "4B" })),
+    ...payments.map((p) => ({ ...p, tenant: "Tenant", unit: "-" })),
     {
       id: "PAY-3010",
       amount: 1650.0,

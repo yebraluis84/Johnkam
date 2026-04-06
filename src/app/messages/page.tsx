@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MessageSquare,
   Send,
@@ -18,6 +18,14 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showCompose, setShowCompose] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setUserName(stored.name || "");
+    } catch {}
+  }, []);
 
   const filtered = conversations.filter(
     (c) =>
@@ -140,7 +148,7 @@ export default function MessagesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-900 truncate">
-                      {conv.participants.filter((p) => p !== "Sarah Johnson").join(", ")}
+                      {conv.participants.filter((p) => p !== "Sarah Johnson" && p !== userName).join(", ")}
                     </p>
                     <p className="text-xs font-medium text-slate-600 mt-0.5 truncate">
                       {conv.subject}
@@ -171,14 +179,14 @@ export default function MessagesPage() {
           <div className="p-4 border-b border-slate-100">
             <h3 className="font-semibold text-slate-900">{selectedConv.subject}</h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              {selectedConv.participants.filter((p) => p !== "Sarah Johnson").join(", ")}
+              {selectedConv.participants.filter((p) => p !== "Sarah Johnson" && p !== userName).join(", ")}
             </p>
           </div>
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {selectedConv.messages.map((msg) => {
-              const isMe = msg.sender === "Sarah Johnson";
+              const isMe = msg.sender === "Sarah Johnson" || msg.sender === userName;
               return (
                 <div
                   key={msg.id}

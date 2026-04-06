@@ -30,16 +30,13 @@ export default function LoginPage() {
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     try {
-      console.log("Login attempt:", { email, password: "***" });
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      console.log("Login response status:", res.status);
       const data = await res.json();
-      console.log("Login response data:", data);
 
       if (!res.ok) {
         setError(data.error || "Invalid credentials");

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -36,6 +36,14 @@ const navItems = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState({ name: "", role: "" });
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setUser({ name: stored.name || "", role: stored.role || "Admin" });
+    } catch {}
+  }, []);
 
   return (
     <>
@@ -79,10 +87,10 @@ export default function AdminSidebar() {
         <div className="px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-bold">
-              MT
+              {user.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "?"}
             </div>
             <div>
-              <p className="text-sm font-medium">Mike Torres</p>
+              <p className="text-sm font-medium">{user.name || "Loading..."}</p>
               <div className="flex items-center gap-1">
                 <Shield className="w-3 h-3 text-emerald-400" />
                 <p className="text-xs text-emerald-400">Admin</p>
