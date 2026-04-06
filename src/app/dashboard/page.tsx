@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   DollarSign,
@@ -20,17 +21,25 @@ import { StatusBadge } from "@/components/StatusBadge";
 
 export default function DashboardPage() {
   const { tickets: maintenanceTickets } = useAppState();
+  const [userName, setUserName] = useState("");
   const openTickets = maintenanceTickets.filter(
     (t) => t.status !== "completed" && t.status !== "closed"
   ).length;
   const lastPayment = payments[0];
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      setUserName(user.name?.split(" ")[0] || "");
+    } catch {}
+  }, []);
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back, Sarah
+          Welcome back{userName ? `, ${userName}` : ""}
         </h1>
         <p className="text-slate-500 mt-1">
           Here&apos;s what&apos;s happening with your account

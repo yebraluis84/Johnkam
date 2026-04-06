@@ -125,7 +125,7 @@ export default function TicketDetailPage({
             </div>
             <div>
               <p className="text-sm text-slate-700">
-                <span className="font-medium">Sarah Johnson</span> submitted
+                <span className="font-medium">{ticket.tenantName || "Tenant"}</span> submitted
                 this request
               </p>
               <p className="text-xs text-slate-400 mt-0.5">

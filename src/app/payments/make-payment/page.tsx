@@ -240,7 +240,7 @@ export default function MakePaymentPage() {
                 <input
                   type="text"
                   required
-                  defaultValue="Sarah Johnson"
+                  defaultValue=""
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
@@ -310,7 +310,7 @@ export default function MakePaymentPage() {
                 <input
                   type="text"
                   required
-                  defaultValue="Sarah Johnson"
+                  defaultValue=""
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>

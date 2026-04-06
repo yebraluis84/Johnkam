@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   User,
   Mail,
@@ -19,6 +19,18 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [user, setUser] = useState({ name: "", email: "", phone: "" });
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setUser({ name: stored.name || "", email: stored.email || "", phone: stored.phone || "" });
+    } catch {}
+  }, []);
+
+  const nameParts = user.name.split(" ");
+  const firstName = nameParts[0] || "";
+  const lastName = nameParts.slice(1).join(" ") || "";
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -43,38 +55,20 @@ export default function ProfilePage() {
         {/* Left: Tenant Info Card */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
           <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold mx-auto">
-            SJ
+            {user.name.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
           </div>
           <h2 className="text-lg font-semibold text-slate-900 mt-4">
-            {currentTenant.name}
+            {user.name || "Loading..."}
           </h2>
-          <p className="text-sm text-slate-500">{currentTenant.unit}</p>
 
           <div className="mt-6 space-y-3 text-left">
             <div className="flex items-center gap-3 text-sm">
               <Mail className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-600">{currentTenant.email}</span>
+              <span className="text-slate-600">{user.email}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <Phone className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-600">{currentTenant.phone}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <MapPin className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-600">{currentTenant.unit}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-600">
-                Lease: {formatDate(currentTenant.leaseStart)} -{" "}
-                {formatDate(currentTenant.leaseEnd)}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <DollarSign className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-600">
-                Rent: {formatCurrency(currentTenant.rentAmount)}/mo
-              </span>
+              <span className="text-slate-600">{user.phone || "Not set"}</span>
             </div>
           </div>
         </div>
@@ -101,7 +95,7 @@ export default function ProfilePage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Sarah"
+                    defaultValue={firstName}
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   />
                 </div>
@@ -111,7 +105,7 @@ export default function ProfilePage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Johnson"
+                    defaultValue={lastName}
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   />
                 </div>
@@ -123,7 +117,7 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="email"
-                  defaultValue={currentTenant.email}
+                  defaultValue={user.email}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
@@ -134,7 +128,7 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="tel"
-                  defaultValue={currentTenant.phone}
+                  defaultValue={user.phone}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
