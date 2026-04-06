@@ -14,11 +14,13 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAppState } from "@/lib/app-context";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 
 export default function VacanciesPage() {
   const { vacancies: vacantUnits, addVacancy, removeVacancy } = useAppState();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -229,7 +231,7 @@ export default function VacanciesPage() {
                   <p className="text-xs text-slate-400 mb-3">Previous: {unit.lastTenant} (moved out {formatDate(unit.lastMoveOut!)})</p>
                 )}
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition">Assign Tenant</button>
+                  <button onClick={() => router.push(`/admin/tenants/new?unit=${encodeURIComponent(unit.unit)}&rent=${unit.rent}`)} className="flex-1 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition">Assign Tenant</button>
                   <button onClick={() => removeVacancy(unit.id)} className="px-3 py-2 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition">Remove</button>
                 </div>
               </div>

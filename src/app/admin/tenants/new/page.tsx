@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus, Send } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
@@ -9,6 +9,9 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function NewTenantPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedUnit = searchParams.get("unit") || "";
+  const preselectedRent = searchParams.get("rent") || "";
   const { addTenant, vacancies } = useAppState();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -142,7 +145,7 @@ export default function NewTenantPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="unit" className="block text-sm font-medium text-slate-700 mb-1.5">Unit Number *</label>
-                <select id="unit" name="unit" required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
+                <select id="unit" name="unit" required defaultValue={preselectedUnit} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
                   <option value="">Select unit</option>
                   {vacancies.filter((v) => v.status === "available").map((v) => (
                     <option key={v.id} value={v.unit}>
@@ -156,7 +159,7 @@ export default function NewTenantPage() {
                 <label htmlFor="rent" className="block text-sm font-medium text-slate-700 mb-1.5">Monthly Rent *</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                  <input id="rent" name="rent" type="number" step="0.01" required className="w-full pl-7 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="0.00" />
+                  <input id="rent" name="rent" type="number" step="0.01" required defaultValue={preselectedRent} className="w-full pl-7 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="0.00" />
                 </div>
               </div>
             </div>
