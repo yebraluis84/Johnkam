@@ -3,30 +3,25 @@
 import {
   Building,
   Users,
-  DollarSign,
   Wrench,
-  TrendingUp,
   AlertTriangle,
   CheckCircle2,
   Clock,
   ArrowRight,
+  Home,
 } from "lucide-react";
 import Link from "next/link";
 import { useAppState } from "@/lib/app-context";
-import { payments } from "@/lib/mock-data";
-import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export default function AdminDashboardPage() {
-  const { tenants: tenantAccounts, tickets: maintenanceTickets, property: propertyInfo } = useAppState();
+  const { tenants: tenantAccounts, tickets: maintenanceTickets, vacancies, property: propertyInfo } = useAppState();
   const activeTenants = tenantAccounts.filter((t) => t.status === "active").length;
-  const delinquent = tenantAccounts.filter((t) => t.status === "delinquent").length;
+  const pendingTenants = tenantAccounts.filter((t) => t.status === "pending").length;
   const openTickets = maintenanceTickets.filter(
     (t) => t.status !== "completed" && t.status !== "closed"
   ).length;
-  const collectionRate = Math.round(
-    (propertyInfo.collectedThisMonth / propertyInfo.totalMonthlyRevenue) * 100
-  );
+  const availableUnits = vacancies.filter((v) => v.status === "available").length;
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
@@ -70,27 +65,24 @@ export default function AdminDashboardPage() {
               <Users className="w-6 h-6 text-green-500" />
             </div>
           </div>
-          <p className="text-xs text-red-500 mt-2">
-            {delinquent} delinquent
+          <p className="text-xs text-slate-400 mt-2">
+            {pendingTenants} pending
           </p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Collected / Month</p>
+              <p className="text-sm text-slate-500">Available Units</p>
               <p className="text-2xl font-bold text-slate-900 mt-1">
-                {collectionRate}%
+                {availableUnits}
               </p>
             </div>
             <div className="w-11 h-11 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-emerald-500" />
+              <Home className="w-6 h-6 text-emerald-500" />
             </div>
           </div>
-          <p className="text-xs text-slate-400 mt-2">
-            {formatCurrency(propertyInfo.collectedThisMonth)} of{" "}
-            {formatCurrency(propertyInfo.totalMonthlyRevenue)}
-          </p>
+          <p className="text-xs text-slate-400 mt-2">Ready for move-in</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
@@ -108,28 +100,6 @@ export default function AdminDashboardPage() {
           <p className="text-xs text-slate-400 mt-2">
             {maintenanceTickets.filter((t) => t.priority === "high" || t.priority === "urgent").length} high priority
           </p>
-        </div>
-      </div>
-
-      {/* Revenue Card */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-xl p-6 text-white">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-emerald-100 text-sm">Monthly Revenue Target</p>
-            <p className="text-3xl font-bold mt-1">
-              {formatCurrency(propertyInfo.totalMonthlyRevenue)}
-            </p>
-            <p className="text-emerald-200 text-sm mt-2">
-              Pending: {formatCurrency(propertyInfo.pendingPayments)}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-8 h-8 text-emerald-200" />
-            <div className="text-right">
-              <p className="text-3xl font-bold">{collectionRate}%</p>
-              <p className="text-emerald-200 text-sm">collected</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -162,26 +132,17 @@ export default function AdminDashboardPage() {
                     <p className="text-xs text-slate-400">Unit {tenant.unit}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      tenant.status === "active"
-                        ? "bg-green-100 text-green-700"
-                        : tenant.status === "delinquent"
-                        ? "bg-red-100 text-red-700"
-                        : tenant.status === "pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {tenant.status}
-                  </span>
-                  {tenant.balance > 0 && (
-                    <p className="text-xs text-red-500 mt-0.5">
-                      {formatCurrency(tenant.balance)} due
-                    </p>
-                  )}
-                </div>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                    tenant.status === "active"
+                      ? "bg-green-100 text-green-700"
+                      : tenant.status === "pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {tenant.status}
+                </span>
               </div>
             ))}
           </div>

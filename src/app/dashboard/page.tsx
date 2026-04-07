@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  DollarSign,
   Wrench,
   FileText,
   Megaphone,
@@ -11,12 +10,12 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
-  CreditCard,
   CalendarDays,
+  MessageSquare,
 } from "lucide-react";
-import { currentTenant, payments, announcements } from "@/lib/mock-data";
+import { announcements } from "@/lib/mock-data";
 import { useAppState } from "@/lib/app-context";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export default function DashboardPage() {
@@ -25,7 +24,6 @@ export default function DashboardPage() {
   const openTickets = maintenanceTickets.filter(
     (t) => t.status !== "completed" && t.status !== "closed"
   ).length;
-  const lastPayment = payments[0];
 
   useEffect(() => {
     try {
@@ -36,7 +34,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">
           Welcome back{userName ? `, ${userName}` : ""}
@@ -47,22 +44,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Balance Due</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">
-                {formatCurrency(currentTenant.balance)}
-              </p>
-            </div>
-            <div className="w-11 h-11 bg-red-50 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-red-500" />
-            </div>
-          </div>
-          <p className="text-xs text-slate-400 mt-2">Due April 1, 2026</p>
-        </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center justify-between">
             <div>
@@ -99,41 +81,26 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Last Payment</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">
-                {formatCurrency(lastPayment.amount)}
-              </p>
+              <p className="text-sm text-slate-500">Messages</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">3</p>
             </div>
             <div className="w-11 h-11 bg-green-50 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-green-500" />
+              <MessageSquare className="w-6 h-6 text-green-500" />
             </div>
           </div>
-          <p className="text-xs text-slate-400 mt-2">
-            {formatDate(lastPayment.date)}
-          </p>
+          <p className="text-xs text-slate-400 mt-2">Conversations</p>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link
-          href="/payments/make-payment"
-          className="bg-blue-600 text-white rounded-xl p-5 hover:bg-blue-700 transition group"
-        >
-          <CreditCard className="w-8 h-8 mb-3" />
-          <p className="font-semibold">Pay Rent</p>
-          <p className="text-sm text-blue-200 mt-1">
-            {formatCurrency(currentTenant.balance)} due
-          </p>
-        </Link>
-
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           href="/maintenance/new"
-          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition group"
+          className="bg-blue-600 text-white rounded-xl p-5 hover:bg-blue-700 transition group"
         >
-          <Wrench className="w-8 h-8 mb-3 text-slate-600" />
-          <p className="font-semibold text-slate-900">New Request</p>
-          <p className="text-sm text-slate-500 mt-1">
+          <Wrench className="w-8 h-8 mb-3" />
+          <p className="font-semibold">New Request</p>
+          <p className="text-sm text-blue-200 mt-1">
             Submit maintenance ticket
           </p>
         </Link>

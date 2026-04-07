@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Filter, Mail, Phone, Trash2 } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 
 export default function TenantsPage() {
   const { tenants: tenantAccounts, removeTenant } = useAppState();
@@ -25,7 +25,6 @@ export default function TenantsPage() {
     active: "bg-green-100 text-green-700",
     pending: "bg-yellow-100 text-yellow-700",
     inactive: "bg-gray-100 text-gray-700",
-    delinquent: "bg-red-100 text-red-700",
   };
 
   return (
@@ -69,7 +68,6 @@ export default function TenantsPage() {
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="pending">Pending</option>
-            <option value="delinquent">Delinquent</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
@@ -80,7 +78,6 @@ export default function TenantsPage() {
         {[
           { label: "Active", count: tenantAccounts.filter((t) => t.status === "active").length, color: "text-green-600 bg-green-50" },
           { label: "Pending", count: tenantAccounts.filter((t) => t.status === "pending").length, color: "text-yellow-600 bg-yellow-50" },
-          { label: "Delinquent", count: tenantAccounts.filter((t) => t.status === "delinquent").length, color: "text-red-600 bg-red-50" },
           { label: "Inactive", count: tenantAccounts.filter((t) => t.status === "inactive").length, color: "text-gray-600 bg-gray-50" },
         ].map((stat) => (
           <div key={stat.label} className={cn("rounded-lg p-3 text-center", stat.color)}>
@@ -131,28 +128,6 @@ export default function TenantsPage() {
             </div>
 
             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-400">Rent</p>
-                <p className="text-sm font-semibold text-slate-900">
-                  {formatCurrency(tenant.rentAmount)}/mo
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-slate-400">Balance</p>
-                <p
-                  className={cn(
-                    "text-sm font-semibold",
-                    tenant.balance > 0 ? "text-red-600" : "text-green-600"
-                  )}
-                >
-                  {tenant.balance > 0
-                    ? formatCurrency(tenant.balance)
-                    : "Paid"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3 flex items-center justify-between">
               <span className="text-xs text-slate-400">
                 Lease: {formatDate(tenant.leaseStart)} — {formatDate(tenant.leaseEnd)}
               </span>

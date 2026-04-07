@@ -59,16 +59,6 @@ export interface PropertyInfo {
   totalUnits: number;
   occupiedUnits: number;
   vacantUnits: number;
-  totalMonthlyRevenue: number;
-  collectedThisMonth: number;
-  pendingPayments: number;
-  bankName?: string;
-  bankAccountHolder?: string;
-  bankRoutingNumber?: string;
-  bankAccountNumber?: string;
-  bankAccountType?: string;
-  zelleEmail?: string;
-  paymentInstructions?: string;
 }
 
 interface AppState {
@@ -96,9 +86,6 @@ const defaultProperty: PropertyInfo = {
   totalUnits: 24,
   occupiedUnits: 0,
   vacantUnits: 24,
-  totalMonthlyRevenue: 0,
-  collectedThisMonth: 0,
-  pendingPayments: 0,
 };
 
 const AppContext = createContext<AppState | null>(null);
@@ -147,8 +134,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (propertyRes && !propertyRes.error) {
         const occupiedCount = unitsRes.filter((u: { status: string }) => u.status === "occupied").length;
-        const totalRent = tenantsRes.reduce((sum: number, t: { rentAmount: number }) => sum + (t.rentAmount || 0), 0);
-        const totalBalance = tenantsRes.reduce((sum: number, t: { balance: number }) => sum + (t.balance || 0), 0);
 
         setProperty({
           id: propertyRes.id,
@@ -158,9 +143,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           totalUnits: propertyRes.totalUnits || unitsRes.length,
           occupiedUnits: occupiedCount,
           vacantUnits: (propertyRes.totalUnits || unitsRes.length) - occupiedCount,
-          totalMonthlyRevenue: totalRent,
-          collectedThisMonth: totalRent - totalBalance,
-          pendingPayments: totalBalance,
         });
       }
     } catch (err) {

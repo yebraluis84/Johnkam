@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Building2,
   Bell,
-  CreditCard,
   Save,
   Users,
   Plus,
@@ -12,7 +11,6 @@ import {
   X,
   Eye,
   EyeOff,
-  Landmark,
 } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
 
@@ -28,14 +26,11 @@ export default function AdminSettingsPage() {
   const { property: propertyInfo, updateProperty } = useAppState();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [bankSaving, setBankSaving] = useState(false);
-  const [bankSaved, setBankSaved] = useState(false);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffError, setStaffError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showBankAccount, setShowBankAccount] = useState(false);
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -64,32 +59,6 @@ export default function AdminSettingsPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     }, 800);
-  }
-
-  async function handleBankSave(e: React.FormEvent) {
-    e.preventDefault();
-    setBankSaving(true);
-    const form = e.target as HTMLFormElement;
-    const bankName = (form.elements.namedItem("bankName") as HTMLInputElement).value;
-    const bankAccountHolder = (form.elements.namedItem("bankAccountHolder") as HTMLInputElement).value;
-    const bankRoutingNumber = (form.elements.namedItem("bankRoutingNumber") as HTMLInputElement).value;
-    const bankAccountNumber = (form.elements.namedItem("bankAccountNumber") as HTMLInputElement).value;
-    const bankAccountType = (form.elements.namedItem("bankAccountType") as HTMLSelectElement).value;
-    const zelleEmail = (form.elements.namedItem("zelleEmail") as HTMLInputElement).value;
-    const paymentInstructions = (form.elements.namedItem("paymentInstructions") as HTMLTextAreaElement).value;
-
-    try {
-      await fetch("/api/property", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bankName, bankAccountHolder, bankRoutingNumber, bankAccountNumber, bankAccountType, zelleEmail, paymentInstructions }),
-      });
-      setBankSaving(false);
-      setBankSaved(true);
-      setTimeout(() => setBankSaved(false), 3000);
-    } catch {
-      setBankSaving(false);
-    }
   }
 
   async function handleAddStaff(e: React.FormEvent) {
@@ -220,166 +189,6 @@ export default function AdminSettingsPage() {
             >
               <Save className="w-4 h-4" />
               {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
-            </button>
-          </div>
-        </div>
-      </form>
-
-      {/* Payment Settings */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <div className="flex items-center gap-2 mb-5">
-          <CreditCard className="w-5 h-5 text-slate-400" />
-          <h2 className="font-semibold text-slate-900">Payment Settings</h2>
-        </div>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Payment Due Day</label>
-              <select className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
-                <option>1st of the month</option>
-                <option>5th of the month</option>
-                <option>15th of the month</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Late Fee Grace Period</label>
-              <select className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
-                <option>3 days</option>
-                <option>5 days</option>
-                <option>7 days</option>
-                <option>10 days</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Late Fee Amount</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                <input type="number" defaultValue="50" className="w-full pl-7 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Accepted Payment Methods</label>
-              <div className="flex flex-col gap-2 pt-1">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded text-emerald-600" />
-                  <span className="text-sm text-slate-700">Credit/Debit Card</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded text-emerald-600" />
-                  <span className="text-sm text-slate-700">ACH Bank Transfer</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bank Account Settings */}
-      <form
-        onSubmit={handleBankSave}
-        className="bg-white rounded-xl border border-slate-200 p-6"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <Landmark className="w-5 h-5 text-slate-400" />
-          <h2 className="font-semibold text-slate-900">Bank Account for Receiving Payments</h2>
-        </div>
-        <p className="text-xs text-slate-400 mb-5">
-          This information will be shown to tenants so they can send rent payments to your account.
-        </p>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Bank Name</label>
-              <input
-                name="bankName"
-                type="text"
-                defaultValue={propertyInfo.bankName || ""}
-                placeholder="e.g. Chase, Bank of America"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Account Holder Name</label>
-              <input
-                name="bankAccountHolder"
-                type="text"
-                defaultValue={propertyInfo.bankAccountHolder || ""}
-                placeholder="Name on the account"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Routing Number</label>
-              <div className="relative">
-                <input
-                  name="bankRoutingNumber"
-                  type={showBankAccount ? "text" : "password"}
-                  defaultValue={propertyInfo.bankRoutingNumber || ""}
-                  placeholder="9-digit routing number"
-                  maxLength={9}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none pr-10"
-                />
-                <button type="button" onClick={() => setShowBankAccount(!showBankAccount)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  {showBankAccount ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Account Number</label>
-              <input
-                name="bankAccountNumber"
-                type={showBankAccount ? "text" : "password"}
-                defaultValue={propertyInfo.bankAccountNumber || ""}
-                placeholder="Account number"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Account Type</label>
-              <select
-                name="bankAccountType"
-                defaultValue={propertyInfo.bankAccountType || "checking"}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none"
-              >
-                <option value="checking">Checking</option>
-                <option value="savings">Savings</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Zelle Email / Phone (optional)</label>
-              <input
-                name="zelleEmail"
-                type="text"
-                defaultValue={propertyInfo.zelleEmail || ""}
-                placeholder="Zelle-registered email or phone"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Payment Instructions for Tenants (optional)</label>
-            <textarea
-              name="paymentInstructions"
-              rows={3}
-              defaultValue={propertyInfo.paymentInstructions || ""}
-              placeholder="e.g. Please include your unit number as memo when sending payment..."
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
-            />
-          </div>
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={bankSaving}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              {bankSaving ? "Saving..." : bankSaved ? "Saved!" : "Save Bank Info"}
             </button>
           </div>
         </div>

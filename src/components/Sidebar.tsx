@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Wrench,
-  CreditCard,
   FileText,
   Megaphone,
   User,
@@ -23,7 +22,6 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/maintenance", label: "Maintenance", icon: Wrench },
-  { href: "/payments", label: "Payments", icon: CreditCard },
   { href: "/lease-renewal", label: "Lease Renewal", icon: RefreshCw },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/announcements", label: "Announcements", icon: Megaphone },
