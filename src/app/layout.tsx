@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/lib/app-context";
+import AuthGuard from "@/components/AuthGuard";
 
 export const metadata: Metadata = {
   title: "TenantHub - Tenant Portal",
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full">
-        <AppProvider>{children}</AppProvider>
+        <AppProvider>
+          <AuthGuard>{children}</AuthGuard>
+        </AppProvider>
       </body>
     </html>
   );

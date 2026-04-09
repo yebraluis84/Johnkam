@@ -1,10 +1,19 @@
 "use client";
 
-import { Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
-import { announcements } from "@/lib/mock-data";
-import { formatDate, cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { Megaphone, AlertTriangle, Info, Bell, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const priorityStyles = {
+interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  priority: string;
+  author: string;
+  createdAt: string;
+}
+
+const priorityStyles: Record<string, { border: string; bg: string; icon: React.ReactNode; label: string; labelColor: string }> = {
   urgent: {
     border: "border-l-red-500",
     bg: "bg-red-50",
@@ -29,6 +38,25 @@ const priorityStyles = {
 };
 
 export default function AnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/announcements")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setAnnouncements(Array.isArray(data) ? data : []))
+      .catch(() => setAnnouncements([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
@@ -43,9 +71,16 @@ export default function AnnouncementsPage() {
         </div>
       </div>
 
+      {announcements.length === 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
+          <Megaphone className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500">No announcements yet.</p>
+        </div>
+      )}
+
       <div className="space-y-4">
         {announcements.map((ann) => {
-          const style = priorityStyles[ann.priority];
+          const style = priorityStyles[ann.priority] || priorityStyles.normal;
           return (
             <div
               key={ann.id}
@@ -85,7 +120,13 @@ export default function AnnouncementsPage() {
                       <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
                         <span>{ann.author}</span>
                         <span>&middot;</span>
-                        <span>{formatDate(ann.date)}</span>
+                        <span>
+                          {new Date(ann.createdAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
                       </div>
                     </div>
                   </div>

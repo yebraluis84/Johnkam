@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest) {
           include: { unit: true },
         })
       : null;
+
+    logAudit({ action: "login", entity: "user", entityId: user.id, userId: user.id, userName: user.name });
 
     return NextResponse.json({
       id: user.id,

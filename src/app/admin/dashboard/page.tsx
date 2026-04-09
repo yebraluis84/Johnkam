@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Building,
   Users,
@@ -9,13 +10,52 @@ import {
   Clock,
   ArrowRight,
   Home,
+  DollarSign,
 } from "lucide-react";
 import Link from "next/link";
 import { useAppState } from "@/lib/app-context";
 import { StatusBadge } from "@/components/StatusBadge";
 
+interface LateFeeInfo {
+  tenantName: string;
+  unit: string;
+  balance: number;
+  daysLate: number;
+  lateFee: number;
+}
+
 export default function AdminDashboardPage() {
   const { tenants: tenantAccounts, tickets: maintenanceTickets, vacancies, property: propertyInfo } = useAppState();
+  const [lateFees, setLateFees] = useState<LateFeeInfo[]>([]);
+
+  useEffect(() => {
+    // Calculate late fees from tenant balances and property settings
+    Promise.all([
+      fetch("/api/tenants").then((r) => r.ok ? r.json() : []).catch(() => []),
+      fetch("/api/settings").then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([tenants, settings]) => {
+      const graceDays = settings?.lateFeeGraceDays || 5;
+      const feeAmount = settings?.lateFeeAmount || 50;
+      const dueDay = settings?.paymentDueDay || 1;
+
+      const now = new Date();
+      const currentDay = now.getDate();
+      const pastDue = currentDay > dueDay + graceDays;
+
+      if (pastDue && Array.isArray(tenants)) {
+        const overdue = tenants
+          .filter((t: { balance: number; status: string }) => t.balance > 0 && t.status === "active")
+          .map((t: { name: string; unit: string; balance: number }) => ({
+            tenantName: t.name,
+            unit: t.unit,
+            balance: t.balance,
+            daysLate: currentDay - dueDay,
+            lateFee: feeAmount,
+          }));
+        setLateFees(overdue);
+      }
+    });
+  }, []);
   const activeTenants = tenantAccounts.filter((t) => t.status === "active").length;
   const pendingTenants = tenantAccounts.filter((t) => t.status === "pending").length;
   const openTickets = maintenanceTickets.filter(
@@ -102,6 +142,33 @@ export default function AdminDashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* Late Fee Alert */}
+      {lateFees.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <DollarSign className="w-5 h-5 text-red-600" />
+            <h2 className="font-semibold text-red-900">Late Fee Alerts</h2>
+            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+              {lateFees.length} tenant{lateFees.length > 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {lateFees.slice(0, 5).map((lf, i) => (
+              <div key={i} className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 border border-red-100">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">{lf.tenantName}</p>
+                  <p className="text-xs text-slate-500">Unit {lf.unit} &middot; {lf.daysLate} days late</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-red-600">${lf.balance.toFixed(2)}</p>
+                  <p className="text-xs text-red-500">+${lf.lateFee} fee</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Tenants */}

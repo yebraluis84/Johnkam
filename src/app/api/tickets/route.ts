@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendMaintenanceUpdate } from "@/lib/email";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
         location: t.location,
         scheduledDate: t.scheduledDate?.toISOString().split("T")[0] || "",
         entryPermission: t.entryPermission,
+        photos: t.photos ? JSON.parse(t.photos) : [],
         tenantId: t.tenantId,
         tenantName: t.tenant.user.name,
         unit: t.tenant.unit?.number || "N/A",
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, description, category, priority, location, tenantId, entryPermission } = body;
+    const { title, description, category, priority, location, tenantId, entryPermission, photos } = body;
 
     const count = await prisma.maintenanceTicket.count();
     const ticketNumber = `MT-${String(count + 1).padStart(4, "0")}`;
@@ -67,9 +69,12 @@ export async function POST(req: NextRequest) {
         location,
         tenantId,
         entryPermission,
+        photos: Array.isArray(photos) ? JSON.stringify(photos) : undefined,
       },
       include: { tenant: { include: { user: true, unit: true } } },
     });
+
+    logAudit({ action: "create", entity: "ticket", entityId: ticket.id, details: `${ticket.ticketNumber}: ${ticket.title}` });
 
     return NextResponse.json({
       id: ticket.id,
@@ -112,6 +117,8 @@ export async function PATCH(req: NextRequest) {
         propertyName: property?.name || "TenantHub",
       });
     }
+
+    logAudit({ action: "update_status", entity: "ticket", entityId: ticket.id, details: `Status changed to ${status}` });
 
     return NextResponse.json({ success: true, status: ticket.status });
   } catch (error) {

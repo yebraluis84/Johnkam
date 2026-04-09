@@ -47,7 +47,7 @@ export async function POST() {
       }
     }
 
-    // Add unique index on signToken if not exists
+    // Unique index on signToken
     try {
       await prisma.$executeRawUnsafe(
         `CREATE UNIQUE INDEX IF NOT EXISTS "documents_signToken_key" ON "documents" ("signToken")`
@@ -55,6 +55,60 @@ export async function POST() {
       results.push("documents: signToken unique index ensured");
     } catch {
       results.push("documents: signToken index already exists");
+    }
+
+    // Create audit_logs table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "audit_logs" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "action" TEXT NOT NULL,
+          "entity" TEXT NOT NULL,
+          "entityId" TEXT,
+          "userId" TEXT,
+          "userName" TEXT,
+          "details" TEXT,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("audit_logs: table created or exists");
+    } catch {
+      results.push("audit_logs: table already exists");
+    }
+
+    // Create checklists table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "checklists" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "type" TEXT NOT NULL,
+          "unitId" TEXT,
+          "tenantId" TEXT,
+          "tenantName" TEXT,
+          "unitNumber" TEXT,
+          "items" TEXT NOT NULL DEFAULT '[]',
+          "notes" TEXT,
+          "completedAt" TIMESTAMPTZ,
+          "completedBy" TEXT,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "checklists_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("checklists: table created or exists");
+    } catch {
+      results.push("checklists: table already exists");
+    }
+
+    // Add photos column to maintenance_tickets
+    try {
+      await prisma.$executeRawUnsafe(
+        `ALTER TABLE "maintenance_tickets" ADD COLUMN "photos" TEXT`
+      );
+      results.push("maintenance_tickets: Added photos");
+    } catch {
+      results.push("maintenance_tickets: photos already exists");
     }
 
     return NextResponse.json({ message: "Migration complete", results });

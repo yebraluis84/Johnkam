@@ -18,8 +18,12 @@ import {
   BarChart3,
   Bell,
   FileText,
+  RefreshCw,
+  ClipboardCheck,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,9 +32,12 @@ const navItems = [
   { href: "/admin/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/admin/vacancies", label: "Vacancies", icon: Home },
   { href: "/admin/documents", label: "Documents", icon: FileText },
+  { href: "/admin/lease-renewals", label: "Lease Renewals", icon: RefreshCw },
+  { href: "/admin/checklists", label: "Checklists", icon: ClipboardCheck },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { href: "/admin/staff", label: "Staff", icon: Shield },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
+  { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -123,7 +130,11 @@ export default function AdminSidebar() {
           })}
         </nav>
 
-        <div className="px-3 py-4 border-t border-slate-700">
+        <div className="px-3 py-4 border-t border-slate-700 space-y-1">
+          <div className="flex items-center justify-between px-3">
+            <span className="text-xs text-slate-400">Theme</span>
+            <ThemeToggle />
+          </div>
           <Link
             href="/login"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"

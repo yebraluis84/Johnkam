@@ -156,6 +156,7 @@ model MaintenanceTicket {
   tenantId        String
   tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   entryPermission String?
+  photos          String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -271,4 +272,34 @@ model NotificationLog {
   createdAt    DateTime @default(now())
 
   @@map("notification_logs")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  userId    String?
+  userName  String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model Checklist {
+  id         String   @id @default(cuid())
+  type       String
+  unitId     String?
+  tenantId   String?
+  tenantName String?
+  unitNumber String?
+  items      String   @default("[]")
+  notes      String?
+  completedAt DateTime?
+  completedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("checklists")
 }

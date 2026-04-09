@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 // GET document by sign token (for the signing page)
 export async function GET(req: NextRequest) {
@@ -76,6 +77,8 @@ export async function POST(req: NextRequest) {
         signedName,
       },
     });
+
+    logAudit({ action: "sign", entity: "document", entityId: updated.id, userName: signedName, details: `Document signed by ${signedName}` });
 
     return NextResponse.json({
       success: true,
