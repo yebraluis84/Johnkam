@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, X, Loader2 } from "lucide-react";
+import { useAppState } from "@/lib/app-context";
 
 const categories = [
   "Plumbing",
@@ -19,6 +20,7 @@ const categories = [
 
 export default function NewMaintenancePage() {
   const router = useRouter();
+  const { refreshData } = useAppState();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState<{ name: string; data: string; preview: string }[]>([]);
@@ -77,6 +79,7 @@ export default function NewMaintenancePage() {
       });
 
       if (res.ok) {
+        refreshData();
         router.push("/maintenance");
       } else {
         const data = await res.json().catch(() => ({}));
