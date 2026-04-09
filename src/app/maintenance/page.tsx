@@ -17,7 +17,7 @@ export default function MaintenancePage() {
       statusFilter === "all" || ticket.status === statusFilter;
     const matchesSearch =
       ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (ticket.ticketNumber || ticket.id).toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
@@ -92,7 +92,7 @@ export default function MaintenancePage() {
               {/* Desktop row */}
               <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-4 items-center">
                 <div className="col-span-1 text-sm text-slate-500 font-mono">
-                  {ticket.id}
+                  {ticket.ticketNumber || ticket.id}
                 </div>
                 <div className="col-span-4">
                   <p className="text-sm font-medium text-slate-900 truncate">
@@ -124,7 +124,7 @@ export default function MaintenancePage() {
                       {ticket.title}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {ticket.id} &middot; {ticket.category}
+                      {ticket.ticketNumber || ticket.id} &middot; {ticket.category}
                     </p>
                   </div>
                   <StatusBadge status={ticket.status} />

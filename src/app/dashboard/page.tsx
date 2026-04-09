@@ -234,7 +234,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-900 truncate">{ticket.title}</p>
-                    <p className="text-xs text-slate-400">{ticket.id} &middot; {ticket.category}</p>
+                    <p className="text-xs text-slate-400">{ticket.ticketNumber || ticket.id} &middot; {ticket.category}</p>
                   </div>
                 </div>
                 <StatusBadge status={ticket.status} />
