@@ -17,6 +17,7 @@ import {
   Home,
   BarChart3,
   Bell,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/admin/vacancies", label: "Vacancies", icon: Home },
+  { href: "/admin/documents", label: "Documents", icon: FileText },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/settings", label: "Settings", icon: Settings },

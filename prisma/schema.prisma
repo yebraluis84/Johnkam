@@ -244,13 +244,18 @@ model Conversation {
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  name      String
-  type      String
-  fileUrl   String?
-  size      String?
-  tenantId  String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  fileUrl     String?
+  size        String?
+  tenantId    String?
+  content     String?
+  signToken   String?  @unique
+  signedAt    DateTime?
+  signedName  String?
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
 
   @@map("documents")
 }

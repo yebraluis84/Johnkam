@@ -187,3 +187,59 @@ export async function sendCustomNotification(params: {
     return { success: false, error: "Email service unavailable" };
   }
 }
+
+export async function sendLeaseDocument(params: {
+  to: string;
+  tenantName: string;
+  documentName: string;
+  propertyName: string;
+  signUrl: string;
+}) {
+  const { to, tenantName, documentName, propertyName, signUrl } = params;
+
+  try {
+    const { data, error } = await getResend().emails.send({
+      from: `${propertyName} <${FROM_EMAIL}>`,
+      to: [to],
+      subject: `Lease Document Ready for Signature - ${documentName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #e2e8f0;">
+            <h1 style="color: #0f172a; margin: 0;">${propertyName}</h1>
+            <p style="color: #64748b; margin: 5px 0 0;">Lease Document</p>
+          </div>
+          <div style="padding: 30px 0;">
+            <h2 style="color: #0f172a;">Hello, ${tenantName}</h2>
+            <p style="color: #475569; line-height: 1.6;">
+              A lease document has been prepared for you and is ready for your electronic signature.
+            </p>
+            <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 5px; color: #64748b; font-size: 14px;">Document:</p>
+              <p style="margin: 0; font-size: 18px; font-weight: bold; color: #0f172a;">${documentName}</p>
+            </div>
+            <p style="color: #475569; line-height: 1.6;">
+              Please review the document carefully before signing.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${signUrl}" style="background: #2563eb; color: white; padding: 14px 35px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">
+                Review &amp; Sign Document
+              </a>
+            </div>
+            <p style="color: #94a3b8; font-size: 13px; text-align: center;">
+              This link is unique to you. Do not share it with others.
+            </p>
+          </div>
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 15px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 12px;">${propertyName} &middot; Powered by TenantHub</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, id: data?.id };
+  } catch (err) {
+    console.error("Email service error:", err);
+    return { success: false, error: "Email service unavailable" };
+  }
+}
