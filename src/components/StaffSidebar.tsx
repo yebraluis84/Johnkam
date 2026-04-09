@@ -4,45 +4,29 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  LayoutDashboard,
-  Users,
   Wrench,
-  Settings,
+  LayoutDashboard,
   Building2,
   LogOut,
   Menu,
   X,
-  Shield,
-  MessageSquare,
-  Home,
-  BarChart3,
-  Bell,
-  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/tenants", label: "Tenants", icon: Users },
-  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
-  { href: "/admin/maintenance", label: "Maintenance", icon: Wrench },
-  { href: "/admin/vacancies", label: "Vacancies", icon: Home },
-  { href: "/admin/documents", label: "Documents", icon: FileText },
-  { href: "/admin/reports", label: "Reports", icon: BarChart3 },
-  { href: "/admin/staff", label: "Staff", icon: Shield },
-  { href: "/admin/notifications", label: "Notifications", icon: Bell },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/staff/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/staff/tickets", label: "Tickets", icon: Wrench },
 ];
 
-export default function AdminSidebar() {
+export default function StaffSidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser] = useState({ name: "", role: "" });
+  const [user, setUser] = useState({ name: "" });
 
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("user") || "{}");
-      setUser({ name: stored.name || "", role: stored.role || "Admin" });
+      setUser({ name: stored.name || "" });
     } catch {}
   }, []);
 
@@ -70,11 +54,9 @@ export default function AdminSidebar() {
         )}
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
-          <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-emerald-400" />
-            <span className="text-lg font-bold tracking-tight">
-              TenantHub
-            </span>
+          <Link href="/staff/dashboard" className="flex items-center gap-2">
+            <Building2 className="w-7 h-7 text-orange-400" />
+            <span className="text-lg font-bold tracking-tight">TenantHub</span>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
@@ -87,14 +69,16 @@ export default function AdminSidebar() {
 
         <div className="px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-bold">
-              {user.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "?"}
+            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold">
+              {user.name
+                ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
+                : "?"}
             </div>
             <div>
               <p className="text-sm font-medium">{user.name || "Loading..."}</p>
               <div className="flex items-center gap-1">
-                <Shield className="w-3 h-3 text-emerald-400" />
-                <p className="text-xs text-emerald-400">Admin</p>
+                <Wrench className="w-3 h-3 text-orange-400" />
+                <p className="text-xs text-orange-400">Maintenance Staff</p>
               </div>
             </div>
           </div>
@@ -112,7 +96,7 @@ export default function AdminSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-orange-600 text-white"
                     : "text-slate-300 hover:bg-slate-800 hover:text-white"
                 )}
               >

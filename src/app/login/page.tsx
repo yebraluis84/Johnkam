@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Eye, EyeOff, Shield } from "lucide-react";
+import { Building2, Eye, EyeOff, Shield, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type LoginRole = "tenant" | "admin";
+type LoginRole = "tenant" | "admin" | "staff";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const defaults = {
     tenant: { email: "", password: "" },
     admin: { email: "", password: "" },
+    staff: { email: "", password: "" },
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -49,6 +50,8 @@ export default function LoginPage() {
 
       if (data.role === "ADMIN") {
         router.push("/admin/dashboard");
+      } else if (data.role === "MAINTENANCE") {
+        router.push("/staff/dashboard");
       } else {
         router.push("/dashboard");
       }
@@ -123,6 +126,19 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
+              onClick={() => { setRole("staff"); setError(""); }}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition",
+                role === "staff"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <Wrench className="w-4 h-4" />
+              Staff
+            </button>
+            <button
+              type="button"
               onClick={() => { setRole("admin"); setError(""); }}
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition",
@@ -138,11 +154,13 @@ export default function LoginPage() {
 
           <div>
             <h2 className="text-2xl font-bold text-slate-900">
-              {role === "admin" ? "Admin Login" : "Welcome back"}
+              {role === "admin" ? "Admin Login" : role === "staff" ? "Staff Login" : "Welcome back"}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               {role === "admin"
                 ? "Sign in to the property management portal"
+                : role === "staff"
+                ? "Sign in to the maintenance staff portal"
                 : "Sign in to your tenant portal"}
             </p>
           </div>
@@ -231,6 +249,8 @@ export default function LoginPage() {
                 "w-full py-2.5 px-4 text-white rounded-lg text-sm font-medium focus:ring-2 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed",
                 role === "admin"
                   ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
+                  : role === "staff"
+                  ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
                   : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
               )}
             >
