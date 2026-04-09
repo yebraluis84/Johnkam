@@ -45,6 +45,7 @@ export default function AdminDocumentsPage() {
   const [docContent, setDocContent] = useState("");
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     loadData();
@@ -71,6 +72,7 @@ export default function AdminDocumentsPage() {
   async function handleCreate() {
     if (!selectedTenant || !docName.trim() || !docContent.trim()) return;
     setSending(true);
+    setErrorMsg("");
     try {
       const res = await fetch("/api/documents", {
         method: "POST",
@@ -83,15 +85,21 @@ export default function AdminDocumentsPage() {
         }),
       });
       const data = await res.json();
+      if (data.error) {
+        setErrorMsg(data.error);
+        return;
+      }
       if (data.id) {
         setShowCreate(false);
         setSelectedTenant("");
         setDocName("");
         setDocContent("");
+        setErrorMsg("");
         loadData();
       }
     } catch (err) {
       console.error("Failed to create document:", err);
+      setErrorMsg("Failed to create document. Please try again.");
     } finally {
       setSending(false);
     }
@@ -291,6 +299,12 @@ export default function AdminDocumentsPage() {
                 />
               </div>
             </div>
+
+            {errorMsg && (
+              <div className="mx-5 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">{errorMsg}</p>
+              </div>
+            )}
 
             <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200">
               <button
