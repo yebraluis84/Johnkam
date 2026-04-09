@@ -1,28 +1,102 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   Mail,
   Send,
   Search,
   CheckCircle2,
-  Eye,
   AlertTriangle,
   Clock,
-  Plus,
-  ToggleLeft,
-  ToggleRight,
-  MessageSquare,
+  Loader2,
 } from "lucide-react";
-import { notificationTemplates, notificationLogs } from "@/lib/extended-data";
 import { cn } from "@/lib/utils";
 
+interface NotificationLog {
+  id: string;
+  templateName: string;
+  recipient: string;
+  email: string;
+  subject: string;
+  status: string;
+  channel: string;
+  createdAt: string;
+}
+
+interface TenantOption {
+  id: string;
+  name: string;
+  email: string;
+  unit: string;
+  userId: string;
+}
+
 export default function NotificationsPage() {
-  const [activeTab, setActiveTab] = useState<"templates" | "logs" | "compose">("templates");
+  const [activeTab, setActiveTab] = useState<"logs" | "compose">("logs");
+  const [logs, setLogs] = useState<NotificationLog[]>([]);
+  const [tenants, setTenants] = useState<TenantOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredLogs = notificationLogs.filter(
+  // Compose state
+  const [recipient, setRecipient] = useState("all");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [logsRes, tenantsRes] = await Promise.all([
+        fetch("/api/notifications"),
+        fetch("/api/tenants"),
+      ]);
+      const logsData = await logsRes.json();
+      const tenantsData = await tenantsRes.json();
+      setLogs(Array.isArray(logsData) ? logsData : []);
+      setTenants(Array.isArray(tenantsData) ? tenantsData : []);
+    } catch (err) {
+      console.error("Failed to load:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSend() {
+    if (!subject.trim() || !message.trim()) return;
+    setSending(true);
+    setSendResult(null);
+    try {
+      const recipients = recipient === "all" ? "all" : [recipient];
+      const res = await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: subject.trim(), message: message.trim(), recipients }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSendResult({ success: true, message: `Sent to ${data.sent} recipient(s)` });
+        setSubject("");
+        setMessage("");
+        setRecipient("all");
+        loadData();
+      } else {
+        setSendResult({ success: false, message: data.error || "Failed to send" });
+      }
+    } catch {
+      setSendResult({ success: false, message: "Failed to send notification" });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const filteredLogs = logs.filter(
     (log) =>
       log.recipient.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.templateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -31,25 +105,16 @@ export default function NotificationsPage() {
 
   const statusIcons: Record<string, React.ReactNode> = {
     delivered: <CheckCircle2 className="w-4 h-4 text-green-500" />,
-    opened: <Eye className="w-4 h-4 text-blue-500" />,
     bounced: <AlertTriangle className="w-4 h-4 text-red-500" />,
     pending: <Clock className="w-4 h-4 text-yellow-500" />,
+    failed: <AlertTriangle className="w-4 h-4 text-red-500" />,
   };
 
   const statusColors: Record<string, string> = {
     delivered: "bg-green-100 text-green-700",
-    opened: "bg-blue-100 text-blue-700",
     bounced: "bg-red-100 text-red-700",
     pending: "bg-yellow-100 text-yellow-700",
-  };
-
-  const typeIcons: Record<string, string> = {
-    payment_reminder: "bg-green-50 text-green-600",
-    late_notice: "bg-red-50 text-red-600",
-    lease_renewal: "bg-purple-50 text-purple-600",
-    maintenance: "bg-orange-50 text-orange-600",
-    announcement: "bg-blue-50 text-blue-600",
-    welcome: "bg-emerald-50 text-emerald-600",
+    failed: "bg-red-100 text-red-700",
   };
 
   function formatTimestamp(ts: string) {
@@ -61,6 +126,14 @@ export default function NotificationsPage() {
     });
   }
 
+  if (loading) {
+    return (
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -69,12 +142,8 @@ export default function NotificationsPage() {
             <Bell className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Email Notifications
-            </h1>
-            <p className="text-slate-500 mt-0.5">
-              Manage templates, send notifications, and view delivery history
-            </p>
+            <h1 className="text-2xl font-bold text-slate-900">Email Notifications</h1>
+            <p className="text-slate-500 mt-0.5">Send notifications and view delivery history</p>
           </div>
         </div>
         <button
@@ -87,35 +156,28 @@ export default function NotificationsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-          <p className="text-2xl font-bold text-slate-900">{notificationLogs.length}</p>
+          <p className="text-2xl font-bold text-slate-900">{logs.length}</p>
           <p className="text-xs text-slate-500 mt-1">Total Sent</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-          <p className="text-2xl font-bold text-blue-600">
-            {notificationLogs.filter((l) => l.status === "opened").length}
-          </p>
-          <p className="text-xs text-slate-500 mt-1">Opened</p>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-green-600">
-            {notificationLogs.filter((l) => l.status === "delivered").length}
+            {logs.filter((l) => l.status === "delivered").length}
           </p>
           <p className="text-xs text-slate-500 mt-1">Delivered</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-red-600">
-            {notificationLogs.filter((l) => l.status === "bounced").length}
+            {logs.filter((l) => l.status === "bounced" || l.status === "failed").length}
           </p>
-          <p className="text-xs text-slate-500 mt-1">Bounced</p>
+          <p className="text-xs text-slate-500 mt-1">Failed</p>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
         {[
-          { key: "templates" as const, label: "Templates" },
           { key: "logs" as const, label: "Delivery Log" },
           { key: "compose" as const, label: "Compose" },
         ].map((tab) => (
@@ -134,61 +196,10 @@ export default function NotificationsPage() {
         ))}
       </div>
 
-      {/* Templates Tab */}
-      {activeTab === "templates" && (
-        <div className="space-y-3">
-          {notificationTemplates.map((template) => (
-            <div
-              key={template.id}
-              className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            >
-              <div className="flex items-start gap-3">
-                <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", typeIcons[template.type])}>
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    {template.name}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {template.description}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">
-                    Subject: {template.subject}
-                  </p>
-                  {template.lastSent && (
-                    <p className="text-xs text-slate-400 mt-1">
-                      Last sent: {new Date(template.lastSent + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} to {template.recipientCount} recipients
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <button className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
-                  Edit
-                </button>
-                <button
-                  className={cn(
-                    "flex items-center gap-1",
-                    template.enabled ? "text-emerald-500" : "text-slate-400"
-                  )}
-                >
-                  {template.enabled ? (
-                    <ToggleRight className="w-8 h-8" />
-                  ) : (
-                    <ToggleLeft className="w-8 h-8" />
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Delivery Log Tab */}
       {activeTab === "logs" && (
         <div className="space-y-4">
-          <div className="relative">
+          <div className="relative max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -199,69 +210,83 @@ export default function NotificationsPage() {
             />
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="divide-y divide-slate-100">
-              {filteredLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex-shrink-0">{statusIcons[log.status]}</div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-slate-900">
-                          {log.recipient}
-                        </p>
-                        <span className="text-xs text-slate-400">
-                          via {log.channel}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5 truncate">
-                        {log.subject}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {log.templateName} &middot; {formatTimestamp(log.sentAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize flex-shrink-0", statusColors[log.status])}>
-                    {log.status}
-                  </span>
-                </div>
-              ))}
+          {filteredLogs.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
+              <Mail className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">No notifications sent yet</p>
+              <p className="text-sm text-slate-400 mt-1">
+                Compose a notification to get started
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div className="divide-y divide-slate-100">
+                {filteredLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex-shrink-0">
+                        {statusIcons[log.status] || statusIcons.pending}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium text-slate-900">{log.recipient}</p>
+                          <span className="text-xs text-slate-400">{log.email}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">{log.subject}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {log.templateName} &middot; {formatTimestamp(log.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize flex-shrink-0",
+                        statusColors[log.status] || statusColors.pending
+                      )}
+                    >
+                      {log.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Compose Tab */}
       {activeTab === "compose" && (
         <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5 max-w-3xl">
-          <h2 className="font-semibold text-slate-900">
-            Compose Notification
-          </h2>
+          <h2 className="font-semibold text-slate-900">Compose Notification</h2>
+
+          {sendResult && (
+            <div
+              className={cn(
+                "p-3 rounded-lg border",
+                sendResult.success
+                  ? "bg-green-50 border-green-200 text-green-700"
+                  : "bg-red-50 border-red-200 text-red-700"
+              )}
+            >
+              <p className="text-sm">{sendResult.message}</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Recipients</label>
-            <select className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
-              <option>All Tenants (21)</option>
-              <option>Active Tenants (18)</option>
-              <option>Delinquent Tenants (1)</option>
-              <option>Select a tenant...</option>
-              <option>Marcus Chen - Unit 2A</option>
-              <option>Emily Rodriguez - Unit 6C</option>
-              <option>James Okonkwo - Unit 1D</option>
-              <option>Priya Patel - Unit 3A</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Template (optional)</label>
-            <select className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white appearance-none">
-              <option value="">No template - custom message</option>
-              {notificationTemplates.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+            <select
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+            >
+              <option value="all">All Tenants ({tenants.length})</option>
+              {tenants.map((t) => (
+                <option key={t.userId} value={t.userId}>
+                  {t.name} — Unit {t.unit} ({t.email})
+                </option>
               ))}
             </select>
           </div>
@@ -270,6 +295,8 @@ export default function NotificationsPage() {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Subject</label>
             <input
               type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
               className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
               placeholder="Email subject line"
             />
@@ -279,33 +306,39 @@ export default function NotificationsPage() {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Message</label>
             <textarea
               rows={8}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none"
               placeholder="Write your notification message here..."
             />
           </div>
 
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" defaultChecked className="w-4 h-4 rounded text-emerald-600" />
-              <span className="text-sm text-slate-700">Email</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4 rounded text-emerald-600" />
-              <span className="text-sm text-slate-700">SMS</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4 rounded text-emerald-600" />
-              <span className="text-sm text-slate-700">Push Notification</span>
-            </label>
-          </div>
-
           <div className="flex justify-end gap-3 pt-2">
-            <button className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
-              Save as Draft
+            <button
+              onClick={() => {
+                setActiveTab("logs");
+                setSendResult(null);
+              }}
+              className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+            >
+              Cancel
             </button>
-            <button className="px-6 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
-              <Send className="w-4 h-4" />
-              Send Now
+            <button
+              onClick={handleSend}
+              disabled={!subject.trim() || !message.trim() || sending}
+              className="px-6 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Send Now
+                </>
+              )}
             </button>
           </div>
         </div>
