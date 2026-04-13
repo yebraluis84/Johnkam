@@ -10,12 +10,14 @@ import {
   LogOut,
   Menu,
   X,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/staff/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/staff/tickets", label: "Tickets", icon: Wrench },
+  { href: "/staff/calendar", label: "Calendar", icon: CalendarDays },
 ];
 
 export default function StaffSidebar() {

@@ -9,10 +9,10 @@ interface User {
   role: string;
 }
 
-const publicPaths = ["/login", "/register", "/sign"];
+const publicPaths = ["/login", "/register", "/sign", "/apply"];
 const adminPaths = ["/admin"];
 const staffPaths = ["/staff"];
-const tenantPaths = ["/dashboard", "/maintenance", "/messages", "/documents", "/announcements", "/profile", "/lease-renewal"];
+const tenantPaths = ["/dashboard", "/maintenance", "/messages", "/documents", "/announcements", "/profile", "/lease-renewal", "/payments", "/amenities", "/packages", "/surveys"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();

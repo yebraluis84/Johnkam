@@ -14,6 +14,10 @@ import {
   X,
   MessageSquare,
   RefreshCw,
+  DollarSign,
+  CalendarDays,
+  Package,
+  ClipboardList,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -21,8 +25,12 @@ import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/payments", label: "Payments", icon: DollarSign },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/maintenance", label: "Maintenance", icon: Wrench },
+  { href: "/amenities", label: "Amenities", icon: CalendarDays },
+  { href: "/packages", label: "Packages", icon: Package },
+  { href: "/surveys", label: "Surveys", icon: ClipboardList },
   { href: "/lease-renewal", label: "Lease Renewal", icon: RefreshCw },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/announcements", label: "Announcements", icon: Megaphone },

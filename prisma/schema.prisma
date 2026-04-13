@@ -91,6 +91,13 @@ model Tenant {
   tickets       MaintenanceTicket[]
   payments      Payment[]
   leaseRenewals LeaseRenewal[]
+  parkingSpots  ParkingSpot[]
+
+  // Insurance
+  insuranceProvider String?
+  insurancePolicyNo String?
+  insuranceExpiry   DateTime?
+  autopayEnabled    Boolean      @default(false)
 
   @@map("tenants")
 }
@@ -302,4 +309,141 @@ model Checklist {
   updatedAt  DateTime @updatedAt
 
   @@map("checklists")
+}
+
+model RentalApplication {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  currentAddress  String?
+  employer        String?
+  income          Float?
+  moveInDate      String?
+  desiredUnit     String?
+  message         String?
+  status          String   @default("pending")
+  reviewedBy      String?
+  reviewNotes     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("rental_applications")
+}
+
+model Amenity {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  location    String?
+  capacity    Int      @default(0)
+  requiresBooking Boolean @default(true)
+  availableFrom   String   @default("08:00")
+  availableTo     String   @default("22:00")
+  rules       String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    AmenityBooking[]
+
+  @@map("amenities")
+}
+
+model AmenityBooking {
+  id          String   @id @default(cuid())
+  amenityId   String
+  amenity     Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  tenantId    String?
+  tenantName  String
+  unit        String?
+  date        String
+  startTime   String
+  endTime     String
+  notes       String?
+  status      String   @default("confirmed")
+  createdAt   DateTime @default(now())
+
+  @@map("amenity_bookings")
+}
+
+model Package {
+  id          String   @id @default(cuid())
+  carrier     String
+  trackingNo  String?
+  tenantId    String?
+  tenantName  String
+  unit        String
+  description String?
+  status      String   @default("received")
+  receivedBy  String?
+  pickedUpAt  DateTime?
+  notifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@map("packages")
+}
+
+model Vendor {
+  id          String   @id @default(cuid())
+  name        String
+  company     String?
+  email       String?
+  phone       String?
+  specialty   String
+  rating      Int      @default(0)
+  notes       String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("vendors")
+}
+
+model ParkingSpot {
+  id          String   @id @default(cuid())
+  spotNumber  String   @unique
+  type        String   @default("standard")
+  level       String?
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantName  String?
+  unit        String?
+  monthlyFee  Float    @default(0)
+  status      String   @default("available")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("parking_spots")
+}
+
+model Survey {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  questions   String   @default("[]")
+  status      String   @default("active")
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  responses   SurveyResponse[]
+
+  @@map("surveys")
+}
+
+model SurveyResponse {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  tenantId    String?
+  tenantName  String?
+  unit        String?
+  answers     String   @default("[]")
+  rating      Int?
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  @@map("survey_responses")
 }

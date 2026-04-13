@@ -111,6 +111,156 @@ export async function POST() {
       results.push("maintenance_tickets: photos already exists");
     }
 
+    // Add insurance & autopay columns to tenants
+    const tenantCols = [
+      { name: "insuranceProvider", type: "TEXT" },
+      { name: "insurancePolicyNo", type: "TEXT" },
+      { name: "insuranceExpiry", type: "TIMESTAMPTZ" },
+      { name: "autopayEnabled", type: "BOOLEAN NOT NULL DEFAULT false" },
+    ];
+    for (const col of tenantCols) {
+      try {
+        await prisma.$executeRawUnsafe(`ALTER TABLE "tenants" ADD COLUMN "${col.name}" ${col.type}`);
+        results.push(`tenants: Added ${col.name}`);
+      } catch { results.push(`tenants: ${col.name} already exists`); }
+    }
+
+    // Create rental_applications table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "rental_applications" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "firstName" TEXT NOT NULL, "lastName" TEXT NOT NULL,
+          "email" TEXT NOT NULL, "phone" TEXT NOT NULL,
+          "currentAddress" TEXT, "employer" TEXT, "income" DOUBLE PRECISION,
+          "moveInDate" TEXT, "desiredUnit" TEXT, "message" TEXT,
+          "status" TEXT NOT NULL DEFAULT 'pending',
+          "reviewedBy" TEXT, "reviewNotes" TEXT,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "rental_applications_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("rental_applications: table created or exists");
+    } catch { results.push("rental_applications: already exists"); }
+
+    // Create amenities table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "amenities" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "name" TEXT NOT NULL, "description" TEXT, "location" TEXT,
+          "capacity" INT NOT NULL DEFAULT 0,
+          "requiresBooking" BOOLEAN NOT NULL DEFAULT true,
+          "availableFrom" TEXT NOT NULL DEFAULT '08:00',
+          "availableTo" TEXT NOT NULL DEFAULT '22:00',
+          "rules" TEXT, "status" TEXT NOT NULL DEFAULT 'active',
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "amenities_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("amenities: table created or exists");
+    } catch { results.push("amenities: already exists"); }
+
+    // Create amenity_bookings table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "amenity_bookings" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "amenityId" TEXT NOT NULL, "tenantId" TEXT, "tenantName" TEXT NOT NULL,
+          "unit" TEXT, "date" TEXT NOT NULL, "startTime" TEXT NOT NULL,
+          "endTime" TEXT NOT NULL, "notes" TEXT,
+          "status" TEXT NOT NULL DEFAULT 'confirmed',
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "amenity_bookings_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("amenity_bookings: table created or exists");
+    } catch { results.push("amenity_bookings: already exists"); }
+
+    // Create packages table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "packages" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "carrier" TEXT NOT NULL, "trackingNo" TEXT,
+          "tenantId" TEXT, "tenantName" TEXT NOT NULL, "unit" TEXT NOT NULL,
+          "description" TEXT, "status" TEXT NOT NULL DEFAULT 'received',
+          "receivedBy" TEXT, "pickedUpAt" TIMESTAMPTZ, "notifiedAt" TIMESTAMPTZ,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "packages_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("packages: table created or exists");
+    } catch { results.push("packages: already exists"); }
+
+    // Create vendors table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "vendors" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "name" TEXT NOT NULL, "company" TEXT, "email" TEXT, "phone" TEXT,
+          "specialty" TEXT NOT NULL, "rating" INT NOT NULL DEFAULT 0,
+          "notes" TEXT, "status" TEXT NOT NULL DEFAULT 'active',
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "vendors_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("vendors: table created or exists");
+    } catch { results.push("vendors: already exists"); }
+
+    // Create parking_spots table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "parking_spots" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "spotNumber" TEXT NOT NULL UNIQUE,
+          "type" TEXT NOT NULL DEFAULT 'standard', "level" TEXT,
+          "tenantId" TEXT, "tenantName" TEXT, "unit" TEXT,
+          "monthlyFee" DOUBLE PRECISION NOT NULL DEFAULT 0,
+          "status" TEXT NOT NULL DEFAULT 'available',
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "parking_spots_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("parking_spots: table created or exists");
+    } catch { results.push("parking_spots: already exists"); }
+
+    // Create surveys table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "surveys" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "title" TEXT NOT NULL, "description" TEXT,
+          "questions" TEXT NOT NULL DEFAULT '[]',
+          "status" TEXT NOT NULL DEFAULT 'active',
+          "createdBy" TEXT, "expiresAt" TIMESTAMPTZ,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "surveys_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("surveys: table created or exists");
+    } catch { results.push("surveys: already exists"); }
+
+    // Create survey_responses table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "survey_responses" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "surveyId" TEXT NOT NULL, "tenantId" TEXT,
+          "tenantName" TEXT, "unit" TEXT,
+          "answers" TEXT NOT NULL DEFAULT '[]',
+          "rating" INT, "comment" TEXT,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "survey_responses_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("survey_responses: table created or exists");
+    } catch { results.push("survey_responses: already exists"); }
+
     return NextResponse.json({ message: "Migration complete", results });
   } catch (error) {
     console.error("Migration error:", error);
