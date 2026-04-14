@@ -447,3 +447,48 @@ model SurveyResponse {
 
   @@map("survey_responses")
 }
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    String
+  description String
+  amount      Float
+  vendor      String?
+  date        DateTime
+  recurring   Boolean  @default(false)
+  notes       String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("expenses")
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  category  String   @default("general")
+  authorId  String?
+  authorName String
+  unit      String?
+  pinned    Boolean  @default(false)
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("community_posts")
+}
+
+model DocumentTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  content     String
+  variables   String   @default("[]")
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("document_templates")
+}

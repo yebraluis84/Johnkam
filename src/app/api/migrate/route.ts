@@ -261,6 +261,66 @@ export async function POST() {
       results.push("survey_responses: table created or exists");
     } catch { results.push("survey_responses: already exists"); }
 
+    // Create expenses table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "expenses" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "category" TEXT NOT NULL,
+          "description" TEXT NOT NULL,
+          "amount" DOUBLE PRECISION NOT NULL,
+          "vendor" TEXT,
+          "date" TIMESTAMPTZ NOT NULL,
+          "recurring" BOOLEAN NOT NULL DEFAULT false,
+          "notes" TEXT,
+          "createdBy" TEXT,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "expenses_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("expenses: table created or exists");
+    } catch { results.push("expenses: already exists"); }
+
+    // Create community_posts table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "community_posts" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "title" TEXT NOT NULL,
+          "content" TEXT NOT NULL,
+          "category" TEXT NOT NULL DEFAULT 'general',
+          "authorId" TEXT,
+          "authorName" TEXT NOT NULL,
+          "unit" TEXT,
+          "pinned" BOOLEAN NOT NULL DEFAULT false,
+          "likes" INT NOT NULL DEFAULT 0,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "community_posts_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("community_posts: table created or exists");
+    } catch { results.push("community_posts: already exists"); }
+
+    // Create document_templates table
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "document_templates" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+          "name" TEXT NOT NULL,
+          "type" TEXT NOT NULL,
+          "content" TEXT NOT NULL,
+          "variables" TEXT NOT NULL DEFAULT '[]',
+          "createdBy" TEXT,
+          "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT "document_templates_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      results.push("document_templates: table created or exists");
+    } catch { results.push("document_templates: already exists"); }
+
     return NextResponse.json({ message: "Migration complete", results });
   } catch (error) {
     console.error("Migration error:", error);

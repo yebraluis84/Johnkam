@@ -13,7 +13,14 @@ import {
   CalendarDays,
   MessageSquare,
   RefreshCw,
-  Loader2,
+  DollarSign,
+  CreditCard,
+  Package,
+  Cloud,
+  Sun,
+  CloudRain,
+  Snowflake,
+  MessageCircle,
 } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -32,6 +39,7 @@ interface LeaseInfo {
   leaseStart: string;
   unit: string;
   rentAmount: number;
+  balance: number;
 }
 
 interface RenewalOffer {
@@ -39,6 +47,12 @@ interface RenewalOffer {
   status: string;
   proposedRent: number;
   newLeaseEnd: string;
+}
+
+interface PackageInfo {
+  id: string;
+  carrier: string;
+  status: string;
 }
 
 export default function DashboardPage() {
@@ -50,6 +64,7 @@ export default function DashboardPage() {
   const [renewal, setRenewal] = useState<RenewalOffer | null>(null);
   const [messageCount, setMessageCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
+  const [packages, setPackages] = useState<PackageInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
   const openTickets = maintenanceTickets.filter(
@@ -67,14 +82,14 @@ export default function DashboardPage() {
       setTenantId(tId);
     } catch {}
 
-    // Fetch real data in parallel
     Promise.all([
       fetch("/api/announcements").then((r) => r.ok ? r.json() : []).catch(() => []),
       tId ? fetch(`/api/lease-renewals?tenantId=${tId}`).then((r) => r.ok ? r.json() : []).catch(() => []) : [],
       userId ? fetch(`/api/messages?userId=${userId}`).then((r) => r.ok ? r.json() : []).catch(() => []) : [],
       tId ? fetch(`/api/documents?tenantId=${tId}`).then((r) => r.ok ? r.json() : []).catch(() => []) : [],
       tId ? fetch(`/api/tenants`).then((r) => r.ok ? r.json() : []).catch(() => []) : [],
-    ]).then(([anns, renewals, convos, docs, tenants]) => {
+      fetch("/api/packages").then((r) => r.ok ? r.json() : []).catch(() => []),
+    ]).then(([anns, renewals, convos, docs, tenants, pkgs]) => {
       setAnnouncements(Array.isArray(anns) ? anns : []);
 
       const activeRenewal = Array.isArray(renewals) ? renewals.find((r: RenewalOffer) => r.status === "offered") : null;
@@ -83,7 +98,6 @@ export default function DashboardPage() {
       setMessageCount(Array.isArray(convos) ? convos.reduce((sum: number, c: { unread: number }) => sum + c.unread, 0) : 0);
       setDocCount(Array.isArray(docs) ? docs.filter((d: { status: string }) => d.status === "pending").length : 0);
 
-      // Get lease info from tenant data
       if (tId && Array.isArray(tenants)) {
         const myTenant = tenants.find((t: { id: string }) => t.id === tId);
         if (myTenant) {
@@ -92,8 +106,13 @@ export default function DashboardPage() {
             leaseStart: myTenant.leaseStart,
             unit: myTenant.unit,
             rentAmount: myTenant.rentAmount,
+            balance: myTenant.balance || 0,
           });
         }
+      }
+
+      if (Array.isArray(pkgs)) {
+        setPackages(pkgs.filter((p: PackageInfo) => p.status === "received"));
       }
     }).finally(() => setLoading(false));
   }, []);
@@ -102,15 +121,36 @@ export default function DashboardPage() {
     ? Math.ceil((new Date(lease.leaseEnd).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
+  // Payment countdown
+  const now = new Date();
+  const dueDay = 1;
+  let nextDue = new Date(now.getFullYear(), now.getMonth(), dueDay);
+  if (now.getDate() > dueDay) nextDue = new Date(now.getFullYear(), now.getMonth() + 1, dueDay);
+  const daysUntilPayment = Math.ceil((nextDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Time-based greeting
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  // Weather icon (decorative, based on month)
+  const month = now.getMonth();
+  const WeatherIcon = month >= 11 || month <= 2 ? Snowflake : month >= 3 && month <= 5 ? Cloud : month >= 6 && month <= 8 ? Sun : CloudRain;
+
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back{userName ? `, ${userName}` : ""}
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Here&apos;s what&apos;s happening with your account
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {greeting}{userName ? `, ${userName}` : ""}
+          </h1>
+          <p className="text-slate-500 mt-1">
+            Here&apos;s what&apos;s happening with your account
+          </p>
+        </div>
+        <div className="hidden sm:flex items-center gap-2 text-slate-400">
+          <WeatherIcon className="w-5 h-5" />
+          <span className="text-sm">{now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</span>
+        </div>
       </div>
 
       {/* Renewal Banner */}
@@ -188,6 +228,63 @@ export default function DashboardPage() {
               <FileText className="w-6 h-6 text-purple-500" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Widgets Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Payment Countdown */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <CreditCard className="w-4 h-4 text-green-600" />
+            <p className="text-sm font-medium text-green-800">Next Payment</p>
+          </div>
+          <p className="text-3xl font-bold text-green-700">{daysUntilPayment} days</p>
+          <p className="text-xs text-green-600 mt-1">
+            Due {nextDue.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            {lease ? ` — $${lease.rentAmount.toFixed(2)}` : ""}
+          </p>
+          {lease && lease.balance > 0 && (
+            <p className="text-xs text-red-600 mt-1 font-medium">Outstanding: ${lease.balance.toFixed(2)}</p>
+          )}
+          <Link href="/payments" className="inline-flex items-center gap-1 text-xs text-green-700 font-medium mt-2 hover:text-green-800">
+            Pay now <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* Packages Widget */}
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border border-amber-200 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Package className="w-4 h-4 text-amber-600" />
+            <p className="text-sm font-medium text-amber-800">Packages</p>
+          </div>
+          {packages.length > 0 ? (
+            <>
+              <p className="text-3xl font-bold text-amber-700">{packages.length}</p>
+              <p className="text-xs text-amber-600 mt-1">Waiting for pickup</p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold text-amber-700 mt-1">All clear</p>
+              <p className="text-xs text-amber-600 mt-1">No packages waiting</p>
+            </>
+          )}
+          <Link href="/packages" className="inline-flex items-center gap-1 text-xs text-amber-700 font-medium mt-2 hover:text-amber-800">
+            View packages <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* Community Widget */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <MessageCircle className="w-4 h-4 text-blue-600" />
+            <p className="text-sm font-medium text-blue-800">Community</p>
+          </div>
+          <p className="text-lg font-semibold text-blue-700 mt-1">Stay Connected</p>
+          <p className="text-xs text-blue-600 mt-1">Events, for sale, lost & found</p>
+          <Link href="/community" className="inline-flex items-center gap-1 text-xs text-blue-700 font-medium mt-2 hover:text-blue-800">
+            Community board <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
       </div>
 

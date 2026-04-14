@@ -12,7 +12,7 @@ interface User {
 const publicPaths = ["/login", "/register", "/sign", "/apply"];
 const adminPaths = ["/admin"];
 const staffPaths = ["/staff"];
-const tenantPaths = ["/dashboard", "/maintenance", "/messages", "/documents", "/announcements", "/profile", "/lease-renewal", "/payments", "/amenities", "/packages", "/surveys"];
+const tenantPaths = ["/dashboard", "/maintenance", "/messages", "/documents", "/announcements", "/profile", "/lease-renewal", "/payments", "/amenities", "/packages", "/surveys", "/community"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();

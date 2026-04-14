@@ -29,6 +29,10 @@ import {
   ClipboardList,
   ShieldCheck,
   FileInput,
+  Receipt,
+  FileSignature,
+  Zap,
+  Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
@@ -50,7 +54,11 @@ const navItems = [
   { href: "/admin/surveys", label: "Surveys", icon: ClipboardList },
   { href: "/admin/checklists", label: "Checklists", icon: ClipboardCheck },
   { href: "/admin/insurance", label: "Insurance", icon: ShieldCheck },
+  { href: "/admin/expenses", label: "Expenses", icon: Receipt },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { href: "/admin/templates", label: "Templates", icon: FileSignature },
+  { href: "/admin/bulk", label: "Bulk Actions", icon: Zap },
+  { href: "/admin/sla", label: "SLA Tracking", icon: Timer },
   { href: "/admin/staff", label: "Staff", icon: Shield },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },

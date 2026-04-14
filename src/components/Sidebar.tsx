@@ -18,6 +18,7 @@ import {
   CalendarDays,
   Package,
   ClipboardList,
+  MessageCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/amenities", label: "Amenities", icon: CalendarDays },
   { href: "/packages", label: "Packages", icon: Package },
   { href: "/surveys", label: "Surveys", icon: ClipboardList },
+  { href: "/community", label: "Community", icon: MessageCircle },
   { href: "/lease-renewal", label: "Lease Renewal", icon: RefreshCw },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/announcements", label: "Announcements", icon: Megaphone },
