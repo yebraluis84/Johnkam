@@ -10,6 +10,12 @@ export async function GET() {
       employer: a.employer, income: a.income, moveInDate: a.moveInDate,
       desiredUnit: a.desiredUnit, message: a.message, status: a.status,
       reviewedBy: a.reviewedBy, reviewNotes: a.reviewNotes,
+      dateOfBirth: a.dateOfBirth, ssnLast4: a.ssnLast4,
+      consentGiven: a.consentGiven,
+      screeningStatus: a.screeningStatus, screeningResult: a.screeningResult,
+      screeningDate: a.screeningDate?.toISOString() || null,
+      creditScore: a.creditScore, criminalClear: a.criminalClear,
+      evictionClear: a.evictionClear, identityVerified: a.identityVerified,
       createdAt: a.createdAt.toISOString(),
     })));
   } catch (error) {
@@ -29,6 +35,9 @@ export async function POST(req: NextRequest) {
         income: body.income ? parseFloat(body.income) : null,
         moveInDate: body.moveInDate, desiredUnit: body.desiredUnit,
         message: body.message,
+        dateOfBirth: body.dateOfBirth || null,
+        ssnLast4: body.ssnLast4 || null,
+        consentGiven: body.consentGiven === true,
       },
     });
     return NextResponse.json({ id: app.id }, { status: 201 });

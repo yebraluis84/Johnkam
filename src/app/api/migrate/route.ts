@@ -144,6 +144,28 @@ export async function POST() {
       results.push("rental_applications: table created or exists");
     } catch { results.push("rental_applications: already exists"); }
 
+    // Add background check columns to rental_applications
+    const screeningColumns = [
+      { name: "dateOfBirth", type: "TEXT" },
+      { name: "ssnLast4", type: "TEXT" },
+      { name: "consentGiven", type: "BOOLEAN NOT NULL DEFAULT false" },
+      { name: "screeningStatus", type: "TEXT DEFAULT 'not_started'" },
+      { name: "screeningResult", type: "TEXT" },
+      { name: "screeningDate", type: "TIMESTAMPTZ" },
+      { name: "creditScore", type: "INT" },
+      { name: "criminalClear", type: "BOOLEAN" },
+      { name: "evictionClear", type: "BOOLEAN" },
+      { name: "identityVerified", type: "BOOLEAN" },
+    ];
+    for (const col of screeningColumns) {
+      try {
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "rental_applications" ADD COLUMN "${col.name}" ${col.type}`
+        );
+        results.push(`rental_applications: Added ${col.name}`);
+      } catch { results.push(`rental_applications: ${col.name} already exists`); }
+    }
+
     // Create amenities table
     try {
       await prisma.$executeRawUnsafe(`
