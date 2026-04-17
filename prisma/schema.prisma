@@ -326,6 +326,19 @@ model RentalApplication {
   status          String   @default("pending")
   reviewedBy      String?
   reviewNotes     String?
+
+  // Background check fields
+  dateOfBirth     String?
+  ssnLast4        String?
+  consentGiven    Boolean  @default(false)
+  screeningStatus String?  @default("not_started")
+  screeningResult String?
+  screeningDate   DateTime?
+  creditScore     Int?
+  criminalClear   Boolean?
+  evictionClear   Boolean?
+  identityVerified Boolean?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

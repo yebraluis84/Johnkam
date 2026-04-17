@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Filter, Mail, Phone, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, Mail, Phone, Trash2, KeyRound, Loader2, CheckCircle2, X } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
 import { formatDate, cn } from "@/lib/utils";
 
@@ -11,6 +11,35 @@ export default function TenantsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [removing, setRemoving] = useState<string | null>(null);
+  const [resetModal, setResetModal] = useState<{ email: string; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState("");
+  const [resetError, setResetError] = useState("");
+
+  async function handleResetPassword() {
+    if (!resetModal || !newPassword.trim()) return;
+    setResetting(true);
+    setResetError("");
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetModal.email, newPassword: newPassword.trim() }),
+      });
+      if (res.ok) {
+        setResetSuccess(`Password reset for ${resetModal.name}`);
+        setResetModal(null);
+        setNewPassword("");
+      } else {
+        const data = await res.json();
+        setResetError(data.error || "Failed to reset password");
+      }
+    } catch {
+      setResetError("Network error");
+    }
+    setResetting(false);
+  }
 
   const filtered = tenantAccounts.filter((tenant) => {
     const matchesStatus = statusFilter === "all" || tenant.status === statusFilter;
@@ -87,6 +116,16 @@ export default function TenantsPage() {
         ))}
       </div>
 
+      {resetSuccess && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <p className="text-sm text-green-800">{resetSuccess}</p>
+          </div>
+          <button onClick={() => setResetSuccess("")} className="text-green-600 hover:text-green-800"><X className="w-4 h-4" /></button>
+        </div>
+      )}
+
       {/* Tenant Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((tenant) => (
@@ -131,19 +170,28 @@ export default function TenantsPage() {
               <span className="text-xs text-slate-400">
                 Lease: {formatDate(tenant.leaseStart)} — {formatDate(tenant.leaseEnd)}
               </span>
-              <button
-                onClick={() => {
-                  if (confirm(`Remove ${tenant.name}? This will delete their account, tickets, and payment history.`)) {
-                    setRemoving(tenant.id);
-                    removeTenant(tenant.id).finally(() => setRemoving(null));
-                  }
-                }}
-                disabled={removing === tenant.id}
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
-                title="Remove tenant"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => { setResetModal({ email: tenant.email, name: tenant.name }); setNewPassword(""); setResetError(""); }}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                  title="Reset password"
+                >
+                  <KeyRound className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`Remove ${tenant.name}? This will delete their account, tickets, and payment history.`)) {
+                      setRemoving(tenant.id);
+                      removeTenant(tenant.id).finally(() => setRemoving(null));
+                    }
+                  }}
+                  disabled={removing === tenant.id}
+                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                  title="Remove tenant"
+                >
+                  {removing === tenant.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -152,6 +200,53 @@ export default function TenantsPage() {
       {filtered.length === 0 && (
         <div className="text-center py-12 text-slate-400">
           <p className="text-sm">No tenants found</p>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-blue-600" /> Reset Password
+              </h2>
+              <button onClick={() => setResetModal(null)} className="p-1 hover:bg-slate-100 rounded">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-600">
+                Set a new password for <strong>{resetModal.name}</strong> ({resetModal.email})
+              </p>
+              {resetError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{resetError}</div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200">
+              <button onClick={() => setResetModal(null)} className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition">
+                Cancel
+              </button>
+              <button
+                onClick={handleResetPassword}
+                disabled={!newPassword.trim() || resetting}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+              >
+                {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                {resetting ? "Resetting..." : "Reset Password"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
