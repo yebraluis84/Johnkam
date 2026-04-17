@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
+export async function GET() {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+  return NextResponse.json({
+    apiKeySet: !!apiKey && apiKey !== "re_placeholder",
+    apiKeyPrefix: apiKey ? apiKey.substring(0, 8) + "..." : "NOT SET",
+    fromEmail,
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || "NOT SET",
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
