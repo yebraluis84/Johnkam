@@ -34,10 +34,10 @@ export async function GET(req: NextRequest) {
         entryPermission: t.entryPermission,
         photos: t.photos ? JSON.parse(t.photos) : [],
         tenantId: t.tenantId,
-        tenantName: t.tenant.user.name,
-        unit: t.tenant.unit?.number || "N/A",
-        createdByName: t.createdBy?.name || t.tenant.user.name,
-        createdByRole: t.createdBy?.role || "TENANT",
+        tenantName: t.tenant?.user.name || "",
+        unit: t.tenant?.unit?.number || "N/A",
+        createdByName: t.createdBy?.name || t.tenant?.user.name || "Unknown",
+        createdByRole: t.createdBy?.role || (t.tenant ? "TENANT" : "UNKNOWN"),
         createdAt: t.createdAt.toISOString(),
         comments: t.comments.map((c) => ({
           id: c.id,
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         category,
         priority: (priority || "MEDIUM").toUpperCase(),
         location,
-        tenantId,
+        tenantId: tenantId || undefined,
         entryPermission,
         photos: Array.isArray(photos) ? JSON.stringify(photos) : undefined,
         createdById: createdById || undefined,
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       ticketNumber: ticket.ticketNumber,
       title: ticket.title,
       status: "open",
-      tenantName: ticket.tenant.user.name,
+      tenantName: ticket.tenant?.user.name || ticket.createdBy?.name || "Unknown",
     }, { status: 201 });
   } catch (error) {
     console.error("POST ticket error:", error);
@@ -109,8 +109,8 @@ export async function PATCH(req: NextRequest) {
       include: { tenant: { include: { user: true, unit: true } } },
     });
 
-    // Send email notification on status change
-    if (status) {
+    // Send email notification on status change (only if ticket is linked to a tenant)
+    if (status && ticket.tenant) {
       const property = await prisma.property.findFirst();
       await sendMaintenanceUpdate({
         to: ticket.tenant.user.email,

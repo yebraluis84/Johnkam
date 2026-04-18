@@ -7,7 +7,7 @@ import { formatDate, cn } from "@/lib/utils";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 
 export default function AdminMaintenancePage() {
-  const { tickets: maintenanceTickets, updateTicket, tenants } = useAppState();
+  const { tickets: maintenanceTickets, updateTicket } = useAppState();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -22,7 +22,6 @@ export default function AdminMaintenancePage() {
   }, []);
 
   // Create ticket form state
-  const [ticketTenantId, setTicketTenantId] = useState("");
   const [ticketTitle, setTicketTitle] = useState("");
   const [ticketDescription, setTicketDescription] = useState("");
   const [ticketCategory, setTicketCategory] = useState("General");
@@ -31,7 +30,7 @@ export default function AdminMaintenancePage() {
   const [createError, setCreateError] = useState("");
 
   async function handleCreateTicket() {
-    if (!ticketTenantId || !ticketTitle.trim()) return;
+    if (!ticketTitle.trim()) return;
     setCreating(true);
     setCreateError("");
     try {
@@ -44,7 +43,6 @@ export default function AdminMaintenancePage() {
           category: ticketCategory,
           priority: ticketPriority,
           location: ticketLocation.trim() || undefined,
-          tenantId: ticketTenantId,
           createdById: currentUser.id,
         }),
       });
@@ -58,7 +56,6 @@ export default function AdminMaintenancePage() {
         setTicketCategory("General");
         setTicketPriority("medium");
         setTicketLocation("");
-        setTicketTenantId("");
         window.location.reload();
       }
     } catch {
@@ -188,11 +185,18 @@ export default function AdminMaintenancePage() {
                         Scheduled: {formatDate(ticket.scheduledDate)}
                       </span>
                     )}
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <User className="w-3 h-3" />
-                      {ticket.tenantName ? `${ticket.tenantName}` : "Unassigned"}
-                      {ticket.unit && ticket.unit !== "N/A" && ` · Unit ${ticket.unit}`}
-                    </span>
+                    {ticket.tenantName && (
+                      <span className="flex items-center gap-1 text-xs text-slate-400">
+                        <User className="w-3 h-3" />
+                        {ticket.tenantName}
+                        {ticket.unit && ticket.unit !== "N/A" && ` · Unit ${ticket.unit}`}
+                      </span>
+                    )}
+                    {ticket.location && (
+                      <span className="text-xs text-slate-400">
+                        Location: {ticket.location}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     <span className="text-xs text-slate-500">
@@ -252,20 +256,10 @@ export default function AdminMaintenancePage() {
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{createError}</div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Tenant *</label>
-                <select
-                  value={ticketTenantId}
-                  onChange={(e) => setTicketTenantId(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
-                >
-                  <option value="">Select tenant</option>
-                  {tenants.filter((t) => t.status === "active").map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} — Unit {t.unit}
-                    </option>
-                  ))}
-                </select>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 flex items-center gap-2">
+                <User className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-600">Created by:</span>
+                <span className="text-sm font-medium text-slate-900">{currentUser.name || "Loading..."}</span>
               </div>
 
               <div>
@@ -346,7 +340,7 @@ export default function AdminMaintenancePage() {
               </button>
               <button
                 onClick={handleCreateTicket}
-                disabled={!ticketTenantId || !ticketTitle.trim() || creating}
+                disabled={!ticketTitle.trim() || creating}
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition"
               >
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}

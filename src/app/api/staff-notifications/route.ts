@@ -16,6 +16,7 @@ export async function GET() {
       },
       include: {
         tenant: { include: { user: true, unit: true } },
+        createdBy: true,
       },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -36,8 +37,8 @@ export async function GET() {
         title: t.title,
         priority: t.priority.toLowerCase(),
         status: t.status.toLowerCase().replace("_", "-"),
-        tenantName: t.tenant.user.name,
-        unit: t.tenant.unit?.number || "N/A",
+        tenantName: t.tenant?.user.name || t.createdBy?.name || "Unknown",
+        unit: t.tenant?.unit?.number || "N/A",
         createdAt: t.createdAt.toISOString(),
         isHighPriority,
         isOverdue,

@@ -144,7 +144,7 @@ export async function POST() {
         "status" "TicketStatus" NOT NULL DEFAULT 'OPEN',
         "location" TEXT,
         "scheduledDate" TIMESTAMP(3),
-        "tenantId" TEXT NOT NULL,
+        "tenantId" TEXT,
         "entryPermission" TEXT,
         "photos" TEXT,
         "createdById" TEXT,

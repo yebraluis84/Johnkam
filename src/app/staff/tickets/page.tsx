@@ -97,7 +97,7 @@ export default function StaffTicketsPage() {
       ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.tenantName.toLowerCase().includes(searchQuery.toLowerCase());
+      (ticket.tenantName || "").toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -205,10 +205,12 @@ export default function StaffTicketsPage() {
                         Scheduled: {new Date(ticket.scheduledDate).toLocaleDateString()}
                       </span>
                     )}
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <User className="w-3 h-3" />
-                      {ticket.tenantName} &middot; Unit {ticket.unit}
-                    </span>
+                    {ticket.tenantName && (
+                      <span className="flex items-center gap-1 text-xs text-slate-400">
+                        <User className="w-3 h-3" />
+                        {ticket.tenantName} &middot; Unit {ticket.unit}
+                      </span>
+                    )}
                     {ticket.entryPermission && (
                       <span className="text-xs text-slate-400">
                         Entry: {ticket.entryPermission}

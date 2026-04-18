@@ -140,7 +140,7 @@ export default function StaffDashboardPage() {
                     {ticket.title}
                   </p>
                   <p className="text-xs text-slate-400">
-                    {ticket.ticketNumber} &middot; Unit {ticket.unit} &middot; {ticket.category}
+                    {ticket.ticketNumber} &middot; {ticket.unit && ticket.unit !== "N/A" ? `Unit ${ticket.unit} · ` : ""}{ticket.category}
                   </p>
                 </div>
               </div>
