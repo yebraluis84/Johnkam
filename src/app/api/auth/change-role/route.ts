@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email and role required" }, { status: 400 });
     }
 
-    if (!["ADMIN", "MAINTENANCE", "TENANT"].includes(role)) {
-      return NextResponse.json({ error: "Invalid role. Must be ADMIN, MAINTENANCE, or TENANT" }, { status: 400 });
+    if (!["ADMIN", "MAINTENANCE", "TENANT", "MANAGEMENT"].includes(role)) {
+      return NextResponse.json({ error: "Invalid role. Must be ADMIN, MAINTENANCE, MANAGEMENT, or TENANT" }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });

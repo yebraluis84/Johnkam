@@ -77,7 +77,7 @@ export default function MessagesPage() {
     fetch("/api/debug")
       .then((r) => r.json())
       .then((users) => {
-        const adminUsers = users.filter((u: AdminUser) => u.role === "ADMIN" || u.role === "MAINTENANCE");
+        const adminUsers = users.filter((u: AdminUser) => u.role === "ADMIN" || u.role === "MAINTENANCE" || u.role === "MANAGEMENT");
         setAdmins(adminUsers);
         if (adminUsers.length > 0) setComposeRecipient(adminUsers[0].id);
       })
@@ -237,7 +237,7 @@ export default function MessagesPage() {
             >
               {admins.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name} ({a.role === "ADMIN" ? "Property Management" : "Maintenance"})
+                  {a.name} ({a.role === "ADMIN" ? "Property Management" : a.role === "MANAGEMENT" ? "Management" : "Maintenance"})
                 </option>
               ))}
             </select>

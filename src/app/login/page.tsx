@@ -48,7 +48,7 @@ export default function LoginPage() {
       // Store user info in localStorage for session
       localStorage.setItem("user", JSON.stringify(data));
 
-      if (data.role === "ADMIN") {
+      if (data.role === "ADMIN" || data.role === "MANAGEMENT") {
         router.push("/admin/dashboard");
       } else if (data.role === "MAINTENANCE") {
         router.push("/staff/dashboard");

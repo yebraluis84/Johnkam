@@ -34,7 +34,7 @@ export async function POST() {
       'DROP TYPE IF EXISTS "PaymentMethod" CASCADE',
       'DROP TYPE IF EXISTS "PaymentStatus" CASCADE',
       'DROP TYPE IF EXISTS "UnitStatus" CASCADE',
-      "CREATE TYPE \"UserRole\" AS ENUM ('ADMIN', 'TENANT', 'MAINTENANCE')",
+      "CREATE TYPE \"UserRole\" AS ENUM ('ADMIN', 'TENANT', 'MAINTENANCE', 'MANAGEMENT')",
       "CREATE TYPE \"TenantStatus\" AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'DELINQUENT')",
       "CREATE TYPE \"TicketPriority\" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT')",
       "CREATE TYPE \"TicketStatus\" AS ENUM ('OPEN', 'IN_PROGRESS', 'SCHEDULED', 'COMPLETED', 'CLOSED')",

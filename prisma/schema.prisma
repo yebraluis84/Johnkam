@@ -10,6 +10,7 @@ enum UserRole {
   ADMIN
   TENANT
   MAINTENANCE
+  MANAGEMENT
 }
 
 enum TenantStatus {
