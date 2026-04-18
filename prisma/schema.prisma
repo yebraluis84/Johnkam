@@ -65,8 +65,9 @@ model User {
   updatedAt    DateTime @updatedAt
 
   tenant            Tenant?
-  sentMessages      Message[]      @relation("SentMessages")
+  sentMessages      Message[]           @relation("SentMessages")
   ticketComments    TicketComment[]
+  createdTickets    MaintenanceTicket[]
 
   @@map("users")
 }
@@ -165,6 +166,8 @@ model MaintenanceTicket {
   tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   entryPermission String?
   photos          String?
+  createdById     String?
+  createdBy       User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
