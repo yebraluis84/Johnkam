@@ -31,6 +31,8 @@ export interface MaintenanceTicket {
   tenantName?: string;
   unit?: string;
   entryPermission?: string;
+  createdByName?: string;
+  createdByRole?: string;
   createdAt: string;
   updatedAt?: string;
   comments: { id: string; message: string; author: string; role?: string; authorRole?: string; createdAt: string }[];

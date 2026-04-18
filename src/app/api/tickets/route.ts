@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         tenant: { include: { user: true, unit: true } },
+        createdBy: true,
         comments: { include: { author: true }, orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
@@ -35,6 +36,8 @@ export async function GET(req: NextRequest) {
         tenantId: t.tenantId,
         tenantName: t.tenant.user.name,
         unit: t.tenant.unit?.number || "N/A",
+        createdByName: t.createdBy?.name || t.tenant.user.name,
+        createdByRole: t.createdBy?.role || "TENANT",
         createdAt: t.createdAt.toISOString(),
         comments: t.comments.map((c) => ({
           id: c.id,
@@ -54,7 +57,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, description, category, priority, location, tenantId, entryPermission, photos } = body;
+    const { title, description, category, priority, location, tenantId, entryPermission, photos, createdById } = body;
 
     const count = await prisma.maintenanceTicket.count();
     const ticketNumber = `MT-${String(count + 1).padStart(4, "0")}`;
@@ -70,8 +73,9 @@ export async function POST(req: NextRequest) {
         tenantId,
         entryPermission,
         photos: Array.isArray(photos) ? JSON.stringify(photos) : undefined,
+        createdById: createdById || undefined,
       },
-      include: { tenant: { include: { user: true, unit: true } } },
+      include: { tenant: { include: { user: true, unit: true } }, createdBy: true },
     });
 
     logAudit({ action: "create", entity: "ticket", entityId: ticket.id, details: `${ticket.ticketNumber}: ${ticket.title}` });
