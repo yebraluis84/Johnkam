@@ -62,19 +62,23 @@ export async function POST(req: NextRequest) {
     const count = await prisma.maintenanceTicket.count();
     const ticketNumber = `MT-${String(count + 1).padStart(4, "0")}`;
 
+    const data: Record<string, unknown> = {
+      ticketNumber,
+      title,
+      description: description || "",
+      category: category || "General",
+      priority: (priority || "MEDIUM").toUpperCase(),
+      location: location || null,
+      entryPermission: entryPermission || null,
+      photos: Array.isArray(photos) ? JSON.stringify(photos) : null,
+      createdById: createdById || null,
+    };
+    if (tenantId) {
+      data.tenantId = tenantId;
+    }
+
     const ticket = await prisma.maintenanceTicket.create({
-      data: {
-        ticketNumber,
-        title,
-        description,
-        category,
-        priority: (priority || "MEDIUM").toUpperCase(),
-        location,
-        tenantId: tenantId || undefined,
-        entryPermission,
-        photos: Array.isArray(photos) ? JSON.stringify(photos) : undefined,
-        createdById: createdById || undefined,
-      },
+      data: data as Parameters<typeof prisma.maintenanceTicket.create>[0]["data"],
       include: { tenant: { include: { user: true, unit: true } }, createdBy: true },
     });
 
