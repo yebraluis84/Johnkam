@@ -13,6 +13,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import StaffNotificationBell from "./StaffNotificationBell";
 
 const navItems = [
   { href: "/staff/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -34,13 +35,22 @@ export default function StaffSidebar() {
 
   return (
     <>
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
-        aria-label="Open menu"
-      >
-        <Menu className="w-6 h-6 text-gray-700" />
-      </button>
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 z-40 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-lg hover:bg-slate-100"
+          aria-label="Open menu"
+        >
+          <Menu className="w-6 h-6 text-gray-700" />
+        </button>
+        <div className="flex items-center gap-2">
+          <Building2 className="w-6 h-6 text-orange-500" />
+          <span className="text-base font-bold text-slate-900">TenantHub</span>
+        </div>
+        <div className="bg-slate-900 rounded-lg">
+          <StaffNotificationBell />
+        </div>
+      </div>
 
       {mobileOpen && (
         <div
@@ -60,13 +70,18 @@ export default function StaffSidebar() {
             <Building2 className="w-7 h-7 text-orange-400" />
             <span className="text-lg font-bold tracking-tight">TenantHub</span>
           </Link>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1 hover:bg-slate-800 rounded"
-            aria-label="Close menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <div className="hidden lg:block">
+              <StaffNotificationBell />
+            </div>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden p-1 hover:bg-slate-800 rounded"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className="px-6 py-4 border-b border-slate-700">
