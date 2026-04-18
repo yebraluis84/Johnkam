@@ -26,6 +26,7 @@ function NewTenantForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedUnit, setSelectedUnit] = useState(preselectedUnit);
   const [selectedRent, setSelectedRent] = useState(preselectedRent);
+  const [moveInDate, setMoveInDate] = useState("");
 
   function handleUnitChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const unitNumber = e.target.value;
@@ -184,7 +185,7 @@ function NewTenantForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="leaseStart" className="block text-sm font-medium text-slate-700 mb-1.5">Lease Start Date *</label>
-                <input id="leaseStart" name="leaseStart" type="date" required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
+                <input id="leaseStart" name="leaseStart" type="date" required onChange={(e) => setMoveInDate(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
               </div>
               <div>
                 <label htmlFor="leaseEnd" className="block text-sm font-medium text-slate-700 mb-1.5">Lease End Date *</label>
@@ -200,7 +201,7 @@ function NewTenantForm() {
             </div>
             <div>
               <label htmlFor="moveIn" className="block text-sm font-medium text-slate-700 mb-1.5">Move-In Date *</label>
-              <input id="moveIn" name="moveIn" type="date" required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
+              <input id="moveIn" name="moveIn" type="date" required value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
             </div>
           </div>
         </div>
