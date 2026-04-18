@@ -118,21 +118,29 @@ export default function AdminSidebar() {
 
         <div className="px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-bold">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              style={{ backgroundColor: user.role === "MANAGEMENT" ? "#fe13a8" : "#10b981" }}
+            >
               {user.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase() : "?"}
             </div>
             <div>
               <p className="text-sm font-medium">{user.name || "Loading..."}</p>
               <div className="flex items-center gap-1">
-                <Shield className="w-3 h-3 text-emerald-400" />
-                <p className="text-xs text-emerald-400">Admin</p>
+                <Shield className="w-3 h-3" style={{ color: user.role === "MANAGEMENT" ? "#fe13a8" : "#34d399" }} />
+                <p className="text-xs" style={{ color: user.role === "MANAGEMENT" ? "#fe13a8" : "#34d399" }}>
+                  {user.role === "MANAGEMENT" ? "Management" : "Admin"}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.filter((item) => {
+            if (user.role === "MANAGEMENT" && item.href === "/admin/staff") return false;
+            return true;
+          }).map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");
             return (

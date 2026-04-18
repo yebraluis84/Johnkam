@@ -12,6 +12,7 @@ import {
   X,
   KeyRound,
   CheckCircle2,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export default function AdminStaffPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState("");
 
   // Form state
   const [name, setName] = useState("");
@@ -47,6 +49,10 @@ export default function AdminStaffPage() {
 
   useEffect(() => {
     loadStaff();
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setCurrentUserRole(stored.role || "");
+    } catch {}
   }, []);
 
   async function loadStaff() {
@@ -143,6 +149,7 @@ export default function AdminStaffPage() {
   );
 
   const adminCount = staff.filter((s) => s.role === "ADMIN").length;
+  const managementCount = staff.filter((s) => s.role === "MANAGEMENT").length;
   const maintenanceCount = staff.filter((s) => s.role === "MAINTENANCE").length;
 
   if (loading) {
@@ -170,7 +177,7 @@ export default function AdminStaffPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-slate-900">{staff.length}</p>
           <p className="text-xs text-slate-500 mt-1">Total Staff</p>
@@ -178,6 +185,10 @@ export default function AdminStaffPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-emerald-600">{adminCount}</p>
           <p className="text-xs text-slate-500 mt-1">Admins</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <p className="text-2xl font-bold" style={{ color: "#fe13a8" }}>{managementCount}</p>
+          <p className="text-xs text-slate-500 mt-1">Management</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-orange-600">{maintenanceCount}</p>
@@ -233,10 +244,13 @@ export default function AdminStaffPage() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={cn(
-                            "w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold",
-                            member.role === "ADMIN" ? "bg-emerald-500" : "bg-orange-500"
-                          )}
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                          style={{
+                            backgroundColor:
+                              member.role === "ADMIN" ? "#10b981"
+                              : member.role === "MANAGEMENT" ? "#fe13a8"
+                              : "#f97316",
+                          }}
                         >
                           {member.name.split(" ").map((n) => n[0]).join("").toUpperCase()}
                         </div>
@@ -251,15 +265,20 @@ export default function AdminStaffPage() {
                           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
                           member.role === "ADMIN"
                             ? "bg-emerald-100 text-emerald-700"
+                            : member.role === "MANAGEMENT"
+                            ? "text-white"
                             : "bg-orange-100 text-orange-700"
                         )}
+                        style={member.role === "MANAGEMENT" ? { backgroundColor: "#fe13a8" } : undefined}
                       >
                         {member.role === "ADMIN" ? (
                           <Shield className="w-3 h-3" />
+                        ) : member.role === "MANAGEMENT" ? (
+                          <Briefcase className="w-3 h-3" />
                         ) : (
                           <Wrench className="w-3 h-3" />
                         )}
-                        {member.role === "ADMIN" ? "Admin" : "Maintenance"}
+                        {member.role === "ADMIN" ? "Admin" : member.role === "MANAGEMENT" ? "Management" : "Maintenance"}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-500">
@@ -267,25 +286,29 @@ export default function AdminStaffPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => { setResetModal({ email: member.email, name: member.name }); setNewPassword(""); setResetError(""); }}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition"
-                          title="Reset password"
-                        >
-                          <KeyRound className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(member.id)}
-                          disabled={deletingId === member.id}
-                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition"
-                          title="Remove staff member"
-                        >
-                          {deletingId === member.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
+                        {currentUserRole !== "MANAGEMENT" && (
+                          <button
+                            onClick={() => { setResetModal({ email: member.email, name: member.name }); setNewPassword(""); setResetError(""); }}
+                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                            title="Reset password"
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </button>
+                        )}
+                        {!(currentUserRole === "MANAGEMENT" && member.role === "ADMIN") && (
+                          <button
+                            onClick={() => handleDelete(member.id)}
+                            disabled={deletingId === member.id}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition"
+                            title="Remove staff member"
+                          >
+                            {deletingId === member.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -369,7 +392,10 @@ export default function AdminStaffPage() {
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                 >
                   <option value="MAINTENANCE">Maintenance Staff</option>
-                  <option value="ADMIN">Admin</option>
+                  <option value="MANAGEMENT">Management</option>
+                  {currentUserRole !== "MANAGEMENT" && (
+                    <option value="ADMIN">Admin</option>
+                  )}
                 </select>
               </div>
 

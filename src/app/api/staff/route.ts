@@ -7,7 +7,7 @@ import { sendCustomNotification } from "@/lib/email";
 export async function GET() {
   try {
     const staff = await prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "MAINTENANCE"] } },
+      where: { role: { in: ["ADMIN", "MAINTENANCE", "MANAGEMENT"] } },
       orderBy: { createdAt: "desc" },
     });
 
@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const staffRole = role === "MAINTENANCE" ? "MAINTENANCE" : "ADMIN";
+    const validRoles = ["ADMIN", "MAINTENANCE", "MANAGEMENT"];
+    const staffRole = validRoles.includes(role) ? role : "MANAGEMENT";
 
     const user = await prisma.user.create({
       data: {
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     sendCustomNotification({
       to: [email],
       subject: `Your ${property?.name || "TenantHub"} Staff Account`,
-      message: `Hello ${name},\n\nA ${staffRole === "ADMIN" ? "Admin" : "Maintenance Staff"} account has been created for you.\n\nLogin: ${portalUrl}/login\nEmail: ${email}\nPassword: ${password}\n\nPlease change your password after your first login.\n\nBest regards,\n${property?.name || "TenantHub"} Management`,
+      message: `Hello ${name},\n\nA ${staffRole === "ADMIN" ? "Admin" : staffRole === "MANAGEMENT" ? "Management" : "Maintenance Staff"} account has been created for you.\n\nLogin: ${portalUrl}/login\nEmail: ${email}\nPassword: ${password}\n\nPlease change your password after your first login.\n\nBest regards,\n${property?.name || "TenantHub"} Management`,
       propertyName: property?.name || "TenantHub",
     }).catch(() => {});
 

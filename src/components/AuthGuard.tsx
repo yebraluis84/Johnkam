@@ -51,9 +51,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     const role = user.role;
 
-    // Admin paths - only ADMIN
+    // Admin paths - ADMIN and MANAGEMENT
     if (adminPaths.some((p) => pathname.startsWith(p))) {
-      if (role !== "ADMIN") {
+      if (role !== "ADMIN" && role !== "MANAGEMENT") {
         router.replace(role === "MAINTENANCE" ? "/staff/dashboard" : "/dashboard");
         return;
       }
@@ -62,7 +62,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     // Staff paths - only MAINTENANCE
     if (staffPaths.some((p) => pathname.startsWith(p))) {
       if (role !== "MAINTENANCE") {
-        router.replace(role === "ADMIN" ? "/admin/dashboard" : "/dashboard");
+        const adminLike = role === "ADMIN" || role === "MANAGEMENT";
+        router.replace(adminLike ? "/admin/dashboard" : "/dashboard");
         return;
       }
     }
@@ -70,7 +71,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     // Tenant paths - only TENANT
     if (tenantPaths.some((p) => pathname.startsWith(p))) {
       if (role !== "TENANT") {
-        router.replace(role === "ADMIN" ? "/admin/dashboard" : "/staff/dashboard");
+        const adminLike = role === "ADMIN" || role === "MANAGEMENT";
+        router.replace(adminLike ? "/admin/dashboard" : "/staff/dashboard");
         return;
       }
     }

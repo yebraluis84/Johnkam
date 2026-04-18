@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Search, Filter, Mail, Phone, Trash2, KeyRound, Loader2, CheckCircle2, X } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
@@ -16,6 +16,14 @@ export default function TenantsPage() {
   const [resetting, setResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState("");
   const [resetError, setResetError] = useState("");
+  const [currentUserRole, setCurrentUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      setCurrentUserRole(stored.role || "");
+    } catch {}
+  }, []);
 
   async function handleResetPassword() {
     if (!resetModal || !newPassword.trim()) return;
@@ -171,13 +179,15 @@ export default function TenantsPage() {
                 Lease: {formatDate(tenant.leaseStart)} — {formatDate(tenant.leaseEnd)}
               </span>
               <div className="flex items-center gap-1">
-                <button
-                  onClick={() => { setResetModal({ email: tenant.email, name: tenant.name }); setNewPassword(""); setResetError(""); }}
-                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                  title="Reset password"
-                >
-                  <KeyRound className="w-4 h-4" />
-                </button>
+                {currentUserRole !== "MANAGEMENT" && (
+                  <button
+                    onClick={() => { setResetModal({ email: tenant.email, name: tenant.name }); setNewPassword(""); setResetError(""); }}
+                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                    title="Reset password"
+                  >
+                    <KeyRound className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     if (confirm(`Remove ${tenant.name}? This will delete their account, tickets, and payment history.`)) {
