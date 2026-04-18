@@ -162,8 +162,8 @@ model MaintenanceTicket {
   status          TicketStatus   @default(OPEN)
   location        String?
   scheduledDate   DateTime?
-  tenantId        String
-  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId        String?
+  tenant          Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   entryPermission String?
   photos          String?
   createdById     String?
