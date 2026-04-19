@@ -99,6 +99,11 @@ export default function TicketDetailPage({
             <p className="text-slate-700 font-medium">
               {formatDate(ticket.updatedAt || ticket.createdAt)}
             </p>
+            {ticket.statusChangedAt && (
+              <p className="text-xs text-slate-400 mt-1">
+                by {ticket.statusChangedByName || "Unknown"}
+              </p>
+            )}
           </div>
           {ticket.scheduledDate && (
             <div>

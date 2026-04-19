@@ -26,6 +26,8 @@ interface Ticket {
   entryPermission: string;
   tenantName: string;
   unit: string;
+  statusChangedByName?: string | null;
+  statusChangedAt?: string | null;
   createdAt: string;
 }
 
@@ -71,17 +73,15 @@ export default function StaffTicketsPage() {
   async function updateStatus(ticketId: string, newStatus: string) {
     setUpdatingId(ticketId);
     try {
+      let userId = "";
+      try { userId = JSON.parse(localStorage.getItem("user") || "{}").id || ""; } catch {}
       const res = await fetch("/api/tickets", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: ticketId, status: newStatus }),
+        body: JSON.stringify({ id: ticketId, status: newStatus, updatedById: userId }),
       });
       if (res.ok) {
-        setTickets((prev) =>
-          prev.map((t) =>
-            t.id === ticketId ? { ...t, status: newStatus } : t
-          )
-        );
+        await loadTickets();
       }
     } catch (err) {
       console.error("Failed to update:", err);
@@ -217,6 +217,16 @@ export default function StaffTicketsPage() {
                       </span>
                     )}
                   </div>
+                  {ticket.statusChangedAt && (
+                    <div className="mt-1.5">
+                      <span className="text-xs text-slate-500">
+                        Marked <span className="font-medium text-slate-700">{ticket.status.replace(/[-_]/g, " ")}</span> by{" "}
+                        <span className="font-medium text-slate-700">{ticket.statusChangedByName || "Unknown"}</span>
+                        {" · "}
+                        <span className="text-slate-400">{new Date(ticket.statusChangedAt).toLocaleString()}</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 sm:flex-col sm:items-end">

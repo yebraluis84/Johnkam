@@ -206,6 +206,16 @@ export default function AdminMaintenancePage() {
                       At: <span className="font-medium text-slate-700">{formatDate(ticket.createdAt)}</span>
                     </span>
                   </div>
+                  {ticket.statusChangedAt && (
+                    <div className="mt-1.5">
+                      <span className="text-xs text-slate-500">
+                        Marked <span className="font-medium text-slate-700">{ticket.status.replace(/[-_]/g, " ")}</span> by{" "}
+                        <span className="font-medium text-slate-700">{ticket.statusChangedByName || "Unknown"}</span>
+                        {" · "}
+                        <span className="text-slate-400">{new Date(ticket.statusChangedAt).toLocaleString()}</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 sm:flex-col sm:items-end">

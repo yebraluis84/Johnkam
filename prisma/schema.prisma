@@ -67,7 +67,8 @@ model User {
   tenant            Tenant?
   sentMessages      Message[]           @relation("SentMessages")
   ticketComments    TicketComment[]
-  createdTickets    MaintenanceTicket[]
+  createdTickets    MaintenanceTicket[] @relation("CreatedTickets")
+  updatedTickets    MaintenanceTicket[] @relation("UpdatedTickets")
 
   @@map("users")
 }
@@ -167,7 +168,10 @@ model MaintenanceTicket {
   entryPermission String?
   photos          String?
   createdById     String?
-  createdBy       User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy       User?          @relation("CreatedTickets", fields: [createdById], references: [id], onDelete: SetNull)
+  statusChangedById String?
+  statusChangedBy   User?        @relation("UpdatedTickets", fields: [statusChangedById], references: [id], onDelete: SetNull)
+  statusChangedAt   DateTime?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
