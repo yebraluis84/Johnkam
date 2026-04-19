@@ -59,12 +59,28 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, description, category, priority, location, tenantId, entryPermission, photos, createdById } = body;
 
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
+
+    // Self-heal schema in case migrations didn't run on this environment.
+    // All statements are idempotent (IF NOT EXISTS) so they're safe to run repeatedly.
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "createdById" TEXT`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "photos" TEXT`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL`
+    );
+
     const count = await prisma.maintenanceTicket.count();
     const ticketNumber = `MT-${String(count + 1).padStart(4, "0")}`;
 
     const data: Record<string, unknown> = {
       ticketNumber,
-      title,
+      title: title.trim(),
       description: description || "",
       category: category || "General",
       priority: (priority || "MEDIUM").toUpperCase(),
@@ -92,8 +108,9 @@ export async function POST(req: NextRequest) {
       tenantName: ticket.tenant?.user.name || ticket.createdBy?.name || "Unknown",
     }, { status: 201 });
   } catch (error) {
-    console.error("POST ticket error:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("POST ticket error:", message);
+    return NextResponse.json({ error: message || "Server error" }, { status: 500 });
   }
 }
 
