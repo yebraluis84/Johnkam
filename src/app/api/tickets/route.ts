@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
       include: {
         tenant: { include: { user: true, unit: true } },
         createdBy: true,
+        statusChangedBy: true,
         comments: { include: { author: true }, orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
@@ -38,6 +39,9 @@ export async function GET(req: NextRequest) {
         unit: t.tenant?.unit?.number || "N/A",
         createdByName: t.createdBy?.name || t.tenant?.user.name || "Unknown",
         createdByRole: t.createdBy?.role || (t.tenant ? "TENANT" : "UNKNOWN"),
+        statusChangedByName: t.statusChangedBy?.name || null,
+        statusChangedByRole: t.statusChangedBy?.role || null,
+        statusChangedAt: t.statusChangedAt?.toISOString() || null,
         createdAt: t.createdAt.toISOString(),
         comments: t.comments.map((c) => ({
           id: c.id,
@@ -70,6 +74,12 @@ export async function POST(req: NextRequest) {
     );
     await prisma.$executeRawUnsafe(
       `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "photos" TEXT`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedById" TEXT`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedAt" TIMESTAMP(3)`
     );
     await prisma.$executeRawUnsafe(
       `ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL`
@@ -117,17 +127,21 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, status, scheduledDate } = body;
+    const { id, status, scheduledDate, updatedById } = body;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
     const data: Record<string, unknown> = {};
-    if (status) data.status = status.toUpperCase().replace("-", "_");
+    if (status) {
+      data.status = status.toUpperCase().replace("-", "_");
+      data.statusChangedAt = new Date();
+      if (updatedById) data.statusChangedById = updatedById;
+    }
     if (scheduledDate) data.scheduledDate = new Date(scheduledDate);
 
     const ticket = await prisma.maintenanceTicket.update({
       where: { id },
       data,
-      include: { tenant: { include: { user: true, unit: true } } },
+      include: { tenant: { include: { user: true, unit: true } }, statusChangedBy: true },
     });
 
     // Send email notification on status change (only if ticket is linked to a tenant)

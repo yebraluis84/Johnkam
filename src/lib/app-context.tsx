@@ -33,6 +33,9 @@ export interface MaintenanceTicket {
   entryPermission?: string;
   createdByName?: string;
   createdByRole?: string;
+  statusChangedByName?: string | null;
+  statusChangedByRole?: string | null;
+  statusChangedAt?: string | null;
   createdAt: string;
   updatedAt?: string;
   comments: { id: string; message: string; author: string; role?: string; authorRole?: string; createdAt: string }[];
@@ -232,14 +235,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateTicket = useCallback(async (id: string, data: Partial<MaintenanceTicket>) => {
+    let userId = "";
+    try { userId = JSON.parse(localStorage.getItem("user") || "{}").id || ""; } catch {}
     setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, ...data } : t)));
 
     try {
       await fetch("/api/tickets", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: data.status }),
+        body: JSON.stringify({ id, status: data.status, updatedById: userId }),
       });
+      await fetchData();
     } catch (err) {
       console.error("Failed to update ticket:", err);
     }

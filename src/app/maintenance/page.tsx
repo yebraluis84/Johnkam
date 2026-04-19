@@ -112,7 +112,12 @@ export default function MaintenancePage() {
                   <StatusBadge status={ticket.status} />
                 </div>
                 <div className="col-span-2 text-sm text-slate-500">
-                  {formatDate(ticket.createdAt)}
+                  <div>{formatDate(ticket.createdAt)}</div>
+                  {ticket.statusChangedAt && (
+                    <div className="text-xs text-slate-400 mt-0.5">
+                      Marked {ticket.status.replace(/[-_]/g, " ")} by {ticket.statusChangedByName || "Unknown"}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -135,6 +140,11 @@ export default function MaintenancePage() {
                     {formatDate(ticket.createdAt)}
                   </span>
                 </div>
+                {ticket.statusChangedAt && (
+                  <p className="text-xs text-slate-400">
+                    Marked {ticket.status.replace(/[-_]/g, " ")} by {ticket.statusChangedByName || "Unknown"} · {new Date(ticket.statusChangedAt).toLocaleString()}
+                  </p>
+                )}
               </div>
             </Link>
           ))}
