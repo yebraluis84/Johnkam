@@ -110,6 +110,30 @@ export default function PaymentsPage() {
     if (!form.amount || !tenantId) return;
     setPaying(true);
     try {
+      const amount = parseFloat(form.amount);
+
+      if (form.method === "credit_card") {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tenantId,
+            amount,
+            description: form.description,
+          }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        if (data.error) {
+          alert(data.error);
+          setPaying(false);
+          return;
+        }
+      }
+
       const res = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,7 +143,7 @@ export default function PaymentsPage() {
         const data = await res.json();
         setSuccess(data.confirmationNumber);
         setShowPay(false);
-        setBalance((b) => b - parseFloat(form.amount));
+        setBalance((b) => b - amount);
         const updated = await fetch(
           `/api/payments?tenantId=${tenantId}`
         ).then((r) => r.json());
