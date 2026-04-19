@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { logAudit } from "@/lib/audit";
+import { setAuthCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +24,15 @@ export async function POST(req: NextRequest) {
           include: { unit: true },
         })
       : null;
+
+    await setAuthCookie({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      tenantId: tenant?.id,
+      unit: tenant?.unit?.number,
+    });
 
     logAudit({ action: "login", entity: "user", entityId: user.id, userId: user.id, userName: user.name });
 

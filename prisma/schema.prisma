@@ -101,6 +101,7 @@ model Tenant {
   insurancePolicyNo String?
   insuranceExpiry   DateTime?
   autopayEnabled    Boolean      @default(false)
+  stripeCustomerId  String?      @unique
 
   @@map("tenants")
 }
@@ -198,10 +199,11 @@ model Payment {
   description        String
   method             PaymentMethod
   status             PaymentStatus @default(PENDING)
-  confirmationNumber String?
-  tenantId           String
-  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdAt          DateTime      @default(now())
+  confirmationNumber  String?
+  stripePaymentIntent String?
+  tenantId            String
+  tenant              Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt           DateTime      @default(now())
 
   @@map("payments")
 }
