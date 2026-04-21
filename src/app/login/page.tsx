@@ -259,15 +259,26 @@ export default function LoginPage() {
           </form>
 
           {role === "tenant" && (
-            <p className="text-center text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/register"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Contact your property manager
-              </Link>
-            </p>
+            <div className="text-center space-y-2">
+              <p className="text-sm text-slate-500">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/register"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Contact your property manager
+                </Link>
+              </p>
+              <p className="text-sm text-slate-500">
+                Interested in renting?{" "}
+                <Link
+                  href="/apply"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Submit your application here
+                </Link>
+              </p>
+            </div>
           )}
 
         </div>
