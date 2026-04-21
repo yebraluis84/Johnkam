@@ -157,7 +157,7 @@ export default function DashboardPage() {
       {renewal && (
         <Link
           href="/lease-renewal"
-          className="block bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 text-white hover:from-blue-700 hover:to-blue-800 transition"
+          className="block bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/20 p-5 text-white hover:from-blue-700 hover:to-indigo-700 transition"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -176,19 +176,19 @@ export default function DashboardPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Open Requests</p>
               <p className="text-2xl font-bold text-slate-900 mt-1">{openTickets}</p>
             </div>
-            <div className="w-11 h-11 bg-orange-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm flex items-center justify-center">
               <Wrench className="w-6 h-6 text-orange-500" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Lease Expires</p>
@@ -200,31 +200,31 @@ export default function DashboardPage() {
                 <p className="text-2xl font-bold text-slate-900 mt-1">--</p>
               )}
             </div>
-            <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm flex items-center justify-center">
               <CalendarDays className="w-6 h-6 text-blue-500" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Unread Messages</p>
               <p className="text-2xl font-bold text-slate-900 mt-1">{messageCount}</p>
             </div>
-            <div className="w-11 h-11 bg-green-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm flex items-center justify-center">
               <MessageSquare className="w-6 h-6 text-green-500" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Pending Docs</p>
               <p className="text-2xl font-bold text-slate-900 mt-1">{docCount}</p>
             </div>
-            <div className="w-11 h-11 bg-purple-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm flex items-center justify-center">
               <FileText className="w-6 h-6 text-purple-500" />
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
       {/* Widgets Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Payment Countdown */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-5">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center gap-2 mb-2">
             <CreditCard className="w-4 h-4 text-green-600" />
             <p className="text-sm font-medium text-green-800">Next Payment</p>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Packages Widget */}
-        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border border-amber-200 p-5">
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border border-amber-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center gap-2 mb-2">
             <Package className="w-4 h-4 text-amber-600" />
             <p className="text-sm font-medium text-amber-800">Packages</p>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Community Widget */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-5">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="w-4 h-4 text-blue-600" />
             <p className="text-sm font-medium text-blue-800">Community</p>
@@ -290,17 +290,17 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link href="/maintenance/new" className="bg-blue-600 text-white rounded-xl p-5 hover:bg-blue-700 transition">
+        <Link href="/maintenance/new" className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl shadow-lg shadow-blue-500/20 p-5 hover:from-blue-700 hover:to-blue-600 transition">
           <Wrench className="w-8 h-8 mb-3" />
           <p className="font-semibold">New Request</p>
           <p className="text-sm text-blue-200 mt-1">Submit maintenance ticket</p>
         </Link>
-        <Link href="/documents" className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition">
+        <Link href="/documents" className="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-5 hover:border-blue-300 hover:shadow-md transition">
           <FileText className="w-8 h-8 mb-3 text-slate-600" />
           <p className="font-semibold text-slate-900">Documents</p>
           <p className="text-sm text-slate-500 mt-1">View lease & files</p>
         </Link>
-        <Link href="/announcements" className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition">
+        <Link href="/announcements" className="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-5 hover:border-blue-300 hover:shadow-md transition">
           <Megaphone className="w-8 h-8 mb-3 text-slate-600" />
           <p className="font-semibold text-slate-900">Announcements</p>
           <p className="text-sm text-slate-500 mt-1">{announcements.length} updates</p>
@@ -309,7 +309,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Maintenance */}
-        <div className="bg-white rounded-xl border border-slate-200">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h2 className="font-semibold text-slate-900">Maintenance Requests</h2>
             <Link href="/maintenance" className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
@@ -346,7 +346,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Announcements */}
-        <div className="bg-white rounded-xl border border-slate-200">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h2 className="font-semibold text-slate-900">Announcements</h2>
             <Link href="/announcements" className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">

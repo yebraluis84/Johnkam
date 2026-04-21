@@ -61,13 +61,13 @@ export default function StaffSidebar() {
 
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 flex flex-col w-64 bg-slate-900 text-white transition-transform lg:translate-x-0",
+          "fixed lg:static inset-y-0 left-0 z-50 flex flex-col w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white transition-transform lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700/50">
           <Link href="/staff/dashboard" className="flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-orange-400" />
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20"><Building2 className="w-4.5 h-4.5 text-white" /></div>
             <span className="text-lg font-bold tracking-tight">TenantHub</span>
           </Link>
           <div className="flex items-center gap-1">
@@ -84,9 +84,9 @@ export default function StaffSidebar() {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-b border-slate-700">
+        <div className="px-6 py-4 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20 flex items-center justify-center text-sm font-bold">
               {user.name
                 ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
                 : "?"}
@@ -113,7 +113,7 @@ export default function StaffSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-orange-600 text-white"
+                    ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-md shadow-orange-500/20"
                     : "text-slate-300 hover:bg-slate-800 hover:text-white"
                 )}
               >
@@ -124,7 +124,7 @@ export default function StaffSidebar() {
           })}
         </nav>
 
-        <div className="px-3 py-4 border-t border-slate-700">
+        <div className="px-3 py-4 border-t border-slate-700/50">
           <Link
             href="/login"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"

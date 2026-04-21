@@ -64,46 +64,46 @@ export default function StaffDashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Open</p>
               <p className="text-2xl font-bold text-yellow-600 mt-1">{openCount}</p>
             </div>
-            <div className="w-11 h-11 bg-yellow-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-sm flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-yellow-500" />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">In Progress</p>
               <p className="text-2xl font-bold text-blue-600 mt-1">{inProgressCount}</p>
             </div>
-            <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm flex items-center justify-center">
               <Clock className="w-6 h-6 text-blue-500" />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Scheduled</p>
               <p className="text-2xl font-bold text-purple-600 mt-1">{scheduledCount}</p>
             </div>
-            <div className="w-11 h-11 bg-purple-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm flex items-center justify-center">
               <Wrench className="w-6 h-6 text-purple-500" />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Completed</p>
               <p className="text-2xl font-bold text-green-600 mt-1">{completedCount}</p>
             </div>
-            <div className="w-11 h-11 bg-green-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-green-500" />
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function StaffDashboardPage() {
       </div>
 
       {/* Active Tickets */}
-      <div className="bg-white rounded-xl border border-slate-200">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <h2 className="font-semibold text-slate-900">Active Tickets</h2>
           <Link
