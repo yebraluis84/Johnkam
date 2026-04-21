@@ -349,6 +349,17 @@ model RentalApplication {
   evictionClear   Boolean?
   identityVerified Boolean?
 
+  // Manual verification checklist
+  incomeVerified      Boolean?
+  employmentVerified  Boolean?
+  landlordReference   String?
+  landlordRefVerified Boolean?
+  screeningScore      Int?
+  screeningNotes      String?
+
+  // Tenant conversion tracking
+  convertedToTenantId String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
