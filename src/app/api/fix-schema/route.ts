@@ -24,6 +24,13 @@ export async function GET() {
     { name: "tenantId_nullable", sql: `ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL` },
     { name: "stripeCustomerId", sql: `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "stripeCustomerId" TEXT` },
     { name: "stripePaymentIntent", sql: `ALTER TABLE "payments" ADD COLUMN IF NOT EXISTS "stripePaymentIntent" TEXT` },
+    { name: "incomeVerified", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "incomeVerified" BOOLEAN` },
+    { name: "employmentVerified", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "employmentVerified" BOOLEAN` },
+    { name: "landlordReference", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "landlordReference" TEXT` },
+    { name: "landlordRefVerified", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "landlordRefVerified" BOOLEAN` },
+    { name: "screeningScore", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "screeningScore" INTEGER` },
+    { name: "screeningNotes", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "screeningNotes" TEXT` },
+    { name: "convertedToTenantId", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "convertedToTenantId" TEXT` },
   ];
 
   for (const stmt of alterStatements) {

@@ -16,6 +16,10 @@ export async function GET() {
       screeningDate: a.screeningDate?.toISOString() || null,
       creditScore: a.creditScore, criminalClear: a.criminalClear,
       evictionClear: a.evictionClear, identityVerified: a.identityVerified,
+      incomeVerified: a.incomeVerified, employmentVerified: a.employmentVerified,
+      landlordReference: a.landlordReference, landlordRefVerified: a.landlordRefVerified,
+      screeningScore: a.screeningScore, screeningNotes: a.screeningNotes,
+      convertedToTenantId: a.convertedToTenantId,
       createdAt: a.createdAt.toISOString(),
     })));
   } catch (error) {
@@ -50,11 +54,21 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, status, reviewedBy, reviewNotes } = body;
-    await prisma.rentalApplication.update({
-      where: { id },
-      data: { status, reviewedBy, reviewNotes },
-    });
+    const { id, ...fields } = body;
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+    const allowed = [
+      "status", "reviewedBy", "reviewNotes",
+      "incomeVerified", "employmentVerified",
+      "landlordReference", "landlordRefVerified",
+      "screeningScore", "screeningNotes", "convertedToTenantId",
+    ];
+    const data: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in fields) data[key] = fields[key];
+    }
+
+    await prisma.rentalApplication.update({ where: { id }, data });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("PATCH application error:", error);

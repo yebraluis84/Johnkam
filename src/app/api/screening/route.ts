@@ -34,6 +34,16 @@ export async function POST(req: NextRequest) {
     const allClear = criminalClear && evictionClear && identityVerified && creditScore >= 620;
     const screeningResult = allClear ? "pass" : "review_needed";
 
+    let score = 0;
+    if (creditScore >= 750) score += 30;
+    else if (creditScore >= 700) score += 25;
+    else if (creditScore >= 650) score += 20;
+    else if (creditScore >= 620) score += 15;
+    else score += 5;
+    if (criminalClear) score += 25;
+    if (evictionClear) score += 25;
+    if (identityVerified) score += 20;
+
     await prisma.rentalApplication.update({
       where: { id: applicationId },
       data: {
@@ -44,6 +54,7 @@ export async function POST(req: NextRequest) {
         criminalClear,
         evictionClear,
         identityVerified,
+        screeningScore: score,
       },
     });
 
@@ -54,6 +65,7 @@ export async function POST(req: NextRequest) {
       criminalClear,
       evictionClear,
       identityVerified,
+      screeningScore: score,
     });
   } catch (error) {
     console.error("Screening error:", error);
