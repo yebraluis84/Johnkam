@@ -28,7 +28,10 @@ export default function ApplyPage() {
         body: JSON.stringify(data),
       });
       if (res.ok) setSubmitted(true);
-      else setError("Failed to submit. Please try again.");
+      else {
+        const err = await res.json().catch(() => null);
+        setError(err?.error || "Failed to submit. Please try again.");
+      }
     } catch {
       setError("Network error. Please try again.");
     }
