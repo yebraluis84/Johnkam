@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Building2, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { Building2, CheckCircle2, Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
 
 export default function ApplyPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -41,21 +41,24 @@ export default function ApplyPage() {
 
   if (submitted)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-8 max-w-md w-full text-center space-y-4">
-          <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
-          <h1 className="text-xl font-bold text-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-10 max-w-md w-full text-center space-y-5 shadow-xl shadow-slate-200/50">
+          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/25">
+            <CheckCircle2 className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">
             Application Submitted!
           </h1>
-          <p className="text-slate-500">
+          <p className="text-slate-500 leading-relaxed">
             Thank you for your interest. Your background check will be processed
             as part of your application. We&apos;ll review everything and get
             back to you within 2-3 business days.
           </p>
           <Link
             href="/login"
-            className="inline-block px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg shadow-blue-500/25"
           >
+            <ArrowLeft className="w-4 h-4" />
             Back to Home
           </Link>
         </div>
@@ -63,11 +66,17 @@ export default function ApplyPage() {
     );
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-6">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center">
+          <Link href="/login" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-6 transition">
+            <ArrowLeft className="w-4 h-4" />
+            Back to login
+          </Link>
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Building2 className="w-8 h-8 text-blue-600" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
             <span className="text-2xl font-bold text-slate-900">TenantHub</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900">
@@ -79,14 +88,14 @@ export default function ApplyPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 shadow-sm">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5 shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-lg font-semibold text-slate-900">
               Personal Information
             </h2>
@@ -98,7 +107,7 @@ export default function ApplyPage() {
                 <input
                   name="firstName"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
               <div>
@@ -108,7 +117,7 @@ export default function ApplyPage() {
                 <input
                   name="lastName"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
             </div>
@@ -121,7 +130,7 @@ export default function ApplyPage() {
                   name="email"
                   type="email"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
               <div>
@@ -132,7 +141,7 @@ export default function ApplyPage() {
                   name="phone"
                   type="tel"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
             </div>
@@ -142,7 +151,7 @@ export default function ApplyPage() {
               </label>
               <input
                 name="currentAddress"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -154,7 +163,7 @@ export default function ApplyPage() {
                   name="dateOfBirth"
                   type="date"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
               <div>
@@ -168,14 +177,14 @@ export default function ApplyPage() {
                   maxLength={4}
                   pattern="[0-9]{4}"
                   placeholder="XXXX"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
             </div>
           </div>
 
           {/* Employment & Financial */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5 shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-lg font-semibold text-slate-900">
               Employment & Financial
             </h2>
@@ -186,7 +195,7 @@ export default function ApplyPage() {
                 </label>
                 <input
                   name="employer"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
               <div>
@@ -196,7 +205,7 @@ export default function ApplyPage() {
                 <input
                   name="income"
                   type="number"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
             </div>
@@ -208,7 +217,7 @@ export default function ApplyPage() {
                 <input
                   name="moveInDate"
                   type="date"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
               <div>
@@ -217,7 +226,7 @@ export default function ApplyPage() {
                 </label>
                 <input
                   name="desiredUnit"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
                   placeholder="e.g. 2BR"
                 />
               </div>
@@ -229,20 +238,22 @@ export default function ApplyPage() {
               <textarea
                 name="message"
                 rows={3}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none resize-none"
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition shadow-sm"
               />
             </div>
           </div>
 
           {/* Background Check Consent */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm hover:shadow-md transition-shadow duration-300">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-blue-600" />
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20">
+                <ShieldCheck className="w-4 h-4 text-white" />
+              </div>
               <h2 className="text-lg font-semibold text-slate-900">
                 Background Check Authorization
               </h2>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600 leading-relaxed">
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 text-sm text-slate-600 leading-relaxed border border-slate-100">
               <p>
                 As part of the application process, we conduct a background
                 screening that may include:
@@ -279,7 +290,7 @@ export default function ApplyPage() {
           <button
             type="submit"
             disabled={loading || !consent}
-            className="w-full px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full px-6 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? "Submitting..." : "Submit Application"}
