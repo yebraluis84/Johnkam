@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Building2, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 
 export default function ApplyPage() {
@@ -51,6 +52,12 @@ export default function ApplyPage() {
             as part of your application. We&apos;ll review everything and get
             back to you within 2-3 business days.
           </p>
+          <Link
+            href="/login"
+            className="inline-block px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+          >
+            Back to Home
+          </Link>
         </div>
       </div>
     );
