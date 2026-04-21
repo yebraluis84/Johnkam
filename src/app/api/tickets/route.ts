@@ -3,8 +3,26 @@ import { prisma } from "@/lib/db";
 import { sendMaintenanceUpdate } from "@/lib/email";
 import { logAudit } from "@/lib/audit";
 
+let schemaHealed = false;
+async function ensureSchema() {
+  if (schemaHealed) return;
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "createdById" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "photos" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "entryPermission" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "location" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedById" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedAt" TIMESTAMP(3)`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL`);
+    schemaHealed = true;
+  } catch (e) {
+    console.error("Schema heal failed:", e);
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
+    await ensureSchema();
     const { searchParams } = new URL(req.url);
     const tenantId = searchParams.get("tenantId");
 
@@ -67,23 +85,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    // Self-heal schema in case migrations didn't run on this environment.
-    // All statements are idempotent (IF NOT EXISTS) so they're safe to run repeatedly.
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "createdById" TEXT`
-    );
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "photos" TEXT`
-    );
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedById" TEXT`
-    );
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedAt" TIMESTAMP(3)`
-    );
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL`
-    );
+    await ensureSchema();
 
     const count = await prisma.maintenanceTicket.count();
     const ticketNumber = `MT-${String(count + 1).padStart(4, "0")}`;
@@ -126,6 +128,7 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    await ensureSchema();
     const body = await req.json();
     const { id, status, scheduledDate, updatedById } = body;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
