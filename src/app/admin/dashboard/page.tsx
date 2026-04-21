@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Total Units</p>
@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
                 {propertyInfo.occupiedUnits}/{propertyInfo.totalUnits}
               </p>
             </div>
-            <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm flex items-center justify-center">
               <Building className="w-6 h-6 text-blue-500" />
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Active Tenants</p>
@@ -101,7 +101,7 @@ export default function AdminDashboardPage() {
                 {activeTenants}
               </p>
             </div>
-            <div className="w-11 h-11 bg-green-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm flex items-center justify-center">
               <Users className="w-6 h-6 text-green-500" />
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Available Units</p>
@@ -118,14 +118,14 @@ export default function AdminDashboardPage() {
                 {availableUnits}
               </p>
             </div>
-            <div className="w-11 h-11 bg-emerald-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-sm flex items-center justify-center">
               <Home className="w-6 h-6 text-emerald-500" />
             </div>
           </div>
           <p className="text-xs text-slate-400 mt-2">Ready for move-in</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Open Tickets</p>
@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
                 {openTickets}
               </p>
             </div>
-            <div className="w-11 h-11 bg-orange-50 rounded-lg flex items-center justify-center">
+            <div className="w-11 h-11 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm flex items-center justify-center">
               <Wrench className="w-6 h-6 text-orange-500" />
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
 
       {/* Late Fee Alert */}
       {lateFees.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+        <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 rounded-2xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-3">
             <DollarSign className="w-5 h-5 text-red-600" />
             <h2 className="font-semibold text-red-900">Late Fee Alerts</h2>
@@ -172,7 +172,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Tenants */}
-        <div className="bg-white rounded-xl border border-slate-200">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h2 className="font-semibold text-slate-900">Tenants</h2>
             <Link
@@ -216,7 +216,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Maintenance Tickets */}
-        <div className="bg-white rounded-xl border border-slate-200">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <h2 className="font-semibold text-slate-900">Maintenance Tickets</h2>
             <Link
