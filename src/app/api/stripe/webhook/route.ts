@@ -113,5 +113,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (event.type === "account.updated") {
+    const account = event.data.object;
+    if (account.charges_enabled && account.payouts_enabled) {
+      await prisma.property.updateMany({
+        where: { stripeAccountId: account.id },
+        data: { stripeOnboarded: true },
+      });
+    }
+  }
+
   return NextResponse.json({ received: true });
 }
