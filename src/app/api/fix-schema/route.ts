@@ -50,6 +50,10 @@ export async function GET() {
     { name: "ra_screeningScore", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "screeningScore" INTEGER` },
     { name: "ra_screeningNotes", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "screeningNotes" TEXT` },
     { name: "ra_convertedToTenantId", sql: `ALTER TABLE "rental_applications" ADD COLUMN IF NOT EXISTS "convertedToTenantId" TEXT` },
+    // Stripe Connect on properties
+    { name: "prop_stripeAccountId", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "stripeAccountId" TEXT` },
+    { name: "prop_stripeOnboarded", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "stripeOnboarded" BOOLEAN DEFAULT false` },
+    { name: "prop_platformFeePercent", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "platformFeePercent" DOUBLE PRECISION DEFAULT 2.5` },
   ];
 
   for (const stmt of alterStatements) {

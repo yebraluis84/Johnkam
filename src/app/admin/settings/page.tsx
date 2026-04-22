@@ -11,6 +11,11 @@ import {
   X,
   Eye,
   EyeOff,
+  CreditCard,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
 
@@ -31,6 +36,21 @@ export default function AdminSettingsPage() {
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffError, setStaffError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [stripeStatus, setStripeStatus] = useState<{
+    connected: boolean;
+    onboarded: boolean;
+    chargesEnabled?: boolean;
+    payoutsEnabled?: boolean;
+    platformFeePercent?: number;
+  } | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
+
+  const fetchStripeStatus = useCallback(async (propId: string) => {
+    try {
+      const res = await fetch(`/api/stripe/connect?propertyId=${propId}`);
+      if (res.ok) setStripeStatus(await res.json());
+    } catch {}
+  }, []);
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -43,7 +63,8 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     fetchStaff();
-  }, [fetchStaff]);
+    if (propertyInfo.id) fetchStripeStatus(propertyInfo.id);
+  }, [fetchStaff, fetchStripeStatus, propertyInfo.id]);
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -109,6 +130,27 @@ export default function AdminSettingsPage() {
     } catch (err) {
       console.error("Failed to remove staff:", err);
     }
+  }
+
+  async function handleConnectStripe() {
+    if (!propertyInfo.id) return;
+    setStripeLoading(true);
+    try {
+      const res = await fetch("/api/stripe/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: propertyInfo.id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to start Stripe setup");
+      }
+    } catch {
+      alert("Connection error");
+    }
+    setStripeLoading(false);
   }
 
   const roleLabels: Record<string, string> = {
@@ -193,6 +235,94 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       </form>
+
+      {/* Stripe Connect */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <CreditCard className="w-5 h-5 text-slate-400" />
+          <h2 className="font-semibold text-slate-900">Payment Processing</h2>
+        </div>
+
+        {stripeStatus?.onboarded ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-green-800">Stripe Connected</p>
+                <p className="text-xs text-green-600 mt-0.5">
+                  Payments are live. Tenant rent payments will be deposited directly to your bank account.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="bg-slate-50 rounded-lg p-3">
+                <p className="text-xs text-slate-500">Charges</p>
+                <p className="font-medium text-green-600">{stripeStatus.chargesEnabled ? "Enabled" : "Pending"}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3">
+                <p className="text-xs text-slate-500">Payouts</p>
+                <p className="font-medium text-green-600">{stripeStatus.payoutsEnabled ? "Enabled" : "Pending"}</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 rounded-lg p-3">
+              <p className="text-xs text-slate-500">Platform Fee</p>
+              <p className="text-sm font-medium text-slate-700">{stripeStatus.platformFeePercent ?? 2.5}% per transaction</p>
+            </div>
+            <button
+              onClick={handleConnectStripe}
+              disabled={stripeLoading}
+              className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Update Stripe settings
+            </button>
+          </div>
+        ) : stripeStatus?.connected ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">Setup Incomplete</p>
+                <p className="text-xs text-amber-600 mt-0.5">
+                  Your Stripe account was created but onboarding isn&apos;t finished. Complete it to start receiving payments.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleConnectStripe}
+              disabled={stripeLoading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50"
+            >
+              {stripeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+              {stripeLoading ? "Loading..." : "Complete Stripe Setup"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Connect your Stripe account to receive rent payments directly to your bank account.
+              Tenants will be able to pay with credit cards and bank transfers.
+            </p>
+            <div className="bg-slate-50 rounded-xl p-4 text-xs text-slate-500 space-y-2">
+              <p className="font-medium text-slate-700 text-sm">How it works:</p>
+              <ul className="list-disc ml-4 space-y-1">
+                <li>You&apos;ll be redirected to Stripe to create or link your account</li>
+                <li>Stripe handles all compliance, security, and bank verification</li>
+                <li>Once connected, tenant payments go directly to your bank</li>
+                <li>A small platform fee ({stripeStatus?.platformFeePercent ?? 2.5}%) is deducted per transaction</li>
+              </ul>
+            </div>
+            <button
+              onClick={handleConnectStripe}
+              disabled={stripeLoading || !propertyInfo.id}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50"
+            >
+              {stripeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              {stripeLoading ? "Setting up..." : "Connect Stripe Account"}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Notification Settings */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
