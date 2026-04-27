@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Wrench, AlertTriangle, Clock, CheckCircle2, Loader2 } from "lucide-react";
+import { Wrench, AlertTriangle, Clock, CheckCircle2, Loader2, Bell } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,9 @@ export default function StaffDashboardPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [notifyOnNewTicket, setNotifyOnNewTicket] = useState(true);
+  const [prefSaving, setPrefSaving] = useState(false);
+  const [prefError, setPrefError] = useState("");
 
   useEffect(() => {
     try {
@@ -34,7 +37,36 @@ export default function StaffDashboardPage() {
       .then((data) => setTickets(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    fetch("/api/user/preferences")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && typeof data.notifyOnNewTicket === "boolean") {
+          setNotifyOnNewTicket(data.notifyOnNewTicket);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  async function handleNotifyToggle(next: boolean) {
+    const prev = notifyOnNewTicket;
+    setNotifyOnNewTicket(next); // optimistic
+    setPrefSaving(true);
+    setPrefError("");
+    try {
+      const res = await fetch("/api/user/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notifyOnNewTicket: next }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+    } catch {
+      setNotifyOnNewTicket(prev); // revert on error
+      setPrefError("Couldn't save — try again");
+    } finally {
+      setPrefSaving(false);
+    }
+  }
 
   const openCount = tickets.filter((t) => t.status === "open").length;
   const inProgressCount = tickets.filter((t) => t.status === "in-progress" || t.status === "in_progress").length;
@@ -55,11 +87,44 @@ export default function StaffDashboardPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Welcome, {userName || "Staff"}
-        </h1>
-        <p className="text-slate-500 mt-1">Maintenance dashboard overview</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Welcome, {userName || "Staff"}
+          </h1>
+          <p className="text-slate-500 mt-1">Maintenance dashboard overview</p>
+        </div>
+
+        {/* Notification preferences */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:max-w-sm w-full">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm flex items-center justify-center flex-shrink-0">
+              <Bell className="w-5 h-5 text-orange-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="flex items-center justify-between gap-3 cursor-pointer">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    Email me on new tickets
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Get notified when a tenant submits a request
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifyOnNewTicket}
+                  disabled={prefSaving}
+                  onChange={(e) => handleNotifyToggle(e.target.checked)}
+                  className="w-4 h-4 rounded text-orange-600 border-slate-300 focus:ring-orange-500 flex-shrink-0"
+                />
+              </label>
+              {prefError && (
+                <p className="text-xs text-red-600 mt-1">{prefError}</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats */}

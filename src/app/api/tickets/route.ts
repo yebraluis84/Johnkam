@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { sendMaintenanceUpdate } from "@/lib/email";
+import { sendMaintenanceUpdate, sendNewTicketAlert } from "@/lib/email";
 import { logAudit } from "@/lib/audit";
 
 let schemaHealed = false;
@@ -14,9 +14,46 @@ async function ensureSchema() {
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedById" TEXT`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedAt" TIMESTAMP(3)`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "notifyOnNewTicket" BOOLEAN DEFAULT true`);
     schemaHealed = true;
   } catch (e) {
     console.error("Schema heal failed:", e);
+  }
+}
+
+async function notifyMaintenanceUsers(ticket: {
+  ticketNumber: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  tenantName: string;
+  unit: string;
+}) {
+  try {
+    const [maintenanceUsers, property] = await Promise.all([
+      prisma.user.findMany({
+        where: { role: "MAINTENANCE", notifyOnNewTicket: true },
+        select: { email: true },
+      }),
+      prisma.property.findFirst(),
+    ]);
+
+    if (maintenanceUsers.length === 0) return;
+
+    await sendNewTicketAlert({
+      to: maintenanceUsers.map((u) => u.email),
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      description: ticket.description,
+      category: ticket.category,
+      priority: ticket.priority,
+      tenantName: ticket.tenantName,
+      unit: ticket.unit,
+      propertyName: property?.name || "TenantHub",
+    });
+  } catch (e) {
+    console.error("notifyMaintenanceUsers failed:", e);
   }
 }
 
@@ -111,6 +148,17 @@ export async function POST(req: NextRequest) {
     });
 
     logAudit({ action: "create", entity: "ticket", entityId: ticket.id, details: `${ticket.ticketNumber}: ${ticket.title}` });
+
+    // Fire-and-forget: alert maintenance users who have notifications enabled
+    void notifyMaintenanceUsers({
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      description: ticket.description,
+      category: ticket.category,
+      priority: ticket.priority,
+      tenantName: ticket.tenant?.user.name || ticket.createdBy?.name || "Unknown",
+      unit: ticket.tenant?.unit?.number || "N/A",
+    });
 
     return NextResponse.json({
       id: ticket.id,
