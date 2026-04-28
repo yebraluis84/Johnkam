@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { sendMaintenanceUpdate, sendNewTicketAlert } from "@/lib/email";
+import { sendMaintenanceUpdate, sendNewTicketAlert, sendTicketAssignmentAlert } from "@/lib/email";
 import { logAudit } from "@/lib/audit";
 import { getAuthFromCookie } from "@/lib/auth";
 
@@ -186,6 +186,10 @@ export async function PATCH(req: NextRequest) {
     const { id, status, scheduledDate, updatedById, assignedToId } = body;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
+    const isAssigning = Object.prototype.hasOwnProperty.call(body, "assignedToId");
+    let assignerName: string | null = null;
+    let oldAssignedToId: string | null = null;
+
     const data: Record<string, unknown> = {};
     if (status) {
       data.status = status.toUpperCase().replace("-", "_");
@@ -195,7 +199,7 @@ export async function PATCH(req: NextRequest) {
     if (scheduledDate) data.scheduledDate = new Date(scheduledDate);
 
     // Assignment: only ADMIN or MANAGEMENT can set/change. null/empty clears.
-    if (Object.prototype.hasOwnProperty.call(body, "assignedToId")) {
+    if (isAssigning) {
       const auth = await getAuthFromCookie();
       if (!auth || (auth.role !== "ADMIN" && auth.role !== "MANAGEMENT")) {
         return NextResponse.json(
@@ -203,6 +207,15 @@ export async function PATCH(req: NextRequest) {
           { status: 403 }
         );
       }
+      assignerName = auth.name;
+
+      // Capture old assignment so we can detect actual change for the email
+      const existing = await prisma.maintenanceTicket.findUnique({
+        where: { id },
+        select: { assignedToId: true },
+      });
+      oldAssignedToId = existing?.assignedToId ?? null;
+
       if (assignedToId) {
         // Verify the target user exists and is MAINTENANCE
         const target = await prisma.user.findUnique({
@@ -233,6 +246,37 @@ export async function PATCH(req: NextRequest) {
         assignedTo: true,
       },
     });
+
+    // Email the assignee when assignment actually changed to a new user
+    // (skip on unassign and on no-op re-saves)
+    if (
+      isAssigning &&
+      ticket.assignedToId &&
+      ticket.assignedToId !== oldAssignedToId &&
+      ticket.assignedTo &&
+      assignerName
+    ) {
+      void (async () => {
+        try {
+          const property = await prisma.property.findFirst();
+          await sendTicketAssignmentAlert({
+            to: ticket.assignedTo!.email,
+            assigneeName: ticket.assignedTo!.name,
+            assignerName: assignerName!,
+            ticketNumber: ticket.ticketNumber,
+            title: ticket.title,
+            description: ticket.description,
+            category: ticket.category,
+            priority: ticket.priority,
+            tenantName: ticket.tenant?.user.name || "—",
+            unit: ticket.tenant?.unit?.number || "N/A",
+            propertyName: property?.name || "TenantHub",
+          });
+        } catch (e) {
+          console.error("Failed to send assignment alert:", e);
+        }
+      })();
+    }
 
     // Send email notification on status change (only if ticket is linked to a tenant)
     if (status && ticket.tenant) {
