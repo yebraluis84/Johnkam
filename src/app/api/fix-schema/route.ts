@@ -56,6 +56,8 @@ export async function GET() {
     { name: "prop_platformFeePercent", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "platformFeePercent" DOUBLE PRECISION DEFAULT 2.5` },
     // User notification preferences
     { name: "user_notifyOnNewTicket", sql: `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "notifyOnNewTicket" BOOLEAN DEFAULT true` },
+    // Ticket assignment
+    { name: "ticket_assignedToId", sql: `ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "assignedToId" TEXT` },
   ];
 
   for (const stmt of alterStatements) {

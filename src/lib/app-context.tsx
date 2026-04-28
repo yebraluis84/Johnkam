@@ -36,6 +36,8 @@ export interface MaintenanceTicket {
   statusChangedByName?: string | null;
   statusChangedByRole?: string | null;
   statusChangedAt?: string | null;
+  assignedToId?: string | null;
+  assignedToName?: string | null;
   createdAt: string;
   updatedAt?: string;
   comments: { id: string; message: string; author: string; role?: string; authorRole?: string; createdAt: string }[];
