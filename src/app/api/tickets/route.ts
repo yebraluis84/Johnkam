@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendMaintenanceUpdate, sendNewTicketAlert } from "@/lib/email";
 import { logAudit } from "@/lib/audit";
+import { getAuthFromCookie } from "@/lib/auth";
 
 let schemaHealed = false;
 async function ensureSchema() {
@@ -13,6 +14,7 @@ async function ensureSchema() {
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "location" TEXT`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedById" TEXT`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "statusChangedAt" TIMESTAMP(3)`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ADD COLUMN IF NOT EXISTS "assignedToId" TEXT`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "maintenance_tickets" ALTER COLUMN "tenantId" DROP NOT NULL`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "notifyOnNewTicket" BOOLEAN DEFAULT true`);
     schemaHealed = true;
@@ -71,6 +73,7 @@ export async function GET(req: NextRequest) {
         tenant: { include: { user: true, unit: true } },
         createdBy: true,
         statusChangedBy: true,
+        assignedTo: true,
         comments: { include: { author: true }, orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
@@ -97,6 +100,8 @@ export async function GET(req: NextRequest) {
         statusChangedByName: t.statusChangedBy?.name || null,
         statusChangedByRole: t.statusChangedBy?.role || null,
         statusChangedAt: t.statusChangedAt?.toISOString() || null,
+        assignedToId: t.assignedToId,
+        assignedToName: t.assignedTo?.name || null,
         createdAt: t.createdAt.toISOString(),
         comments: t.comments.map((c) => ({
           id: c.id,
@@ -178,7 +183,7 @@ export async function PATCH(req: NextRequest) {
   try {
     await ensureSchema();
     const body = await req.json();
-    const { id, status, scheduledDate, updatedById } = body;
+    const { id, status, scheduledDate, updatedById, assignedToId } = body;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
     const data: Record<string, unknown> = {};
@@ -189,10 +194,44 @@ export async function PATCH(req: NextRequest) {
     }
     if (scheduledDate) data.scheduledDate = new Date(scheduledDate);
 
+    // Assignment: only ADMIN or MANAGEMENT can set/change. null/empty clears.
+    if (Object.prototype.hasOwnProperty.call(body, "assignedToId")) {
+      const auth = await getAuthFromCookie();
+      if (!auth || (auth.role !== "ADMIN" && auth.role !== "MANAGEMENT")) {
+        return NextResponse.json(
+          { error: "Only admin or management can assign tickets" },
+          { status: 403 }
+        );
+      }
+      if (assignedToId) {
+        // Verify the target user exists and is MAINTENANCE
+        const target = await prisma.user.findUnique({
+          where: { id: assignedToId },
+          select: { role: true },
+        });
+        if (!target) {
+          return NextResponse.json({ error: "Assignee not found" }, { status: 404 });
+        }
+        if (target.role !== "MAINTENANCE") {
+          return NextResponse.json(
+            { error: "Tickets can only be assigned to maintenance staff" },
+            { status: 400 }
+          );
+        }
+        data.assignedToId = assignedToId;
+      } else {
+        data.assignedToId = null;
+      }
+    }
+
     const ticket = await prisma.maintenanceTicket.update({
       where: { id },
       data,
-      include: { tenant: { include: { user: true, unit: true } }, statusChangedBy: true },
+      include: {
+        tenant: { include: { user: true, unit: true } },
+        statusChangedBy: true,
+        assignedTo: true,
+      },
     });
 
     // Send email notification on status change (only if ticket is linked to a tenant)
@@ -208,9 +247,26 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
-    logAudit({ action: "update_status", entity: "ticket", entityId: ticket.id, details: `Status changed to ${status}` });
+    if (status) {
+      logAudit({ action: "update_status", entity: "ticket", entityId: ticket.id, details: `Status changed to ${status}` });
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "assignedToId")) {
+      logAudit({
+        action: "assign_ticket",
+        entity: "ticket",
+        entityId: ticket.id,
+        details: assignedToId
+          ? `Assigned to ${ticket.assignedTo?.name || assignedToId}`
+          : "Unassigned",
+      });
+    }
 
-    return NextResponse.json({ success: true, status: ticket.status });
+    return NextResponse.json({
+      success: true,
+      status: ticket.status,
+      assignedToId: ticket.assignedToId,
+      assignedToName: ticket.assignedTo?.name || null,
+    });
   } catch (error) {
     console.error("PATCH ticket error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

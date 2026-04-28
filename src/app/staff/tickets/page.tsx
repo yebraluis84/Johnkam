@@ -28,6 +28,8 @@ interface Ticket {
   unit: string;
   statusChangedByName?: string | null;
   statusChangedAt?: string | null;
+  assignedToId?: string | null;
+  assignedToName?: string | null;
   createdAt: string;
 }
 
@@ -216,6 +218,9 @@ export default function StaffTicketsPage() {
                         Entry: {ticket.entryPermission}
                       </span>
                     )}
+                    <span className={cn("text-xs", ticket.assignedToName ? "text-emerald-700 font-medium" : "text-slate-400 italic")}>
+                      {ticket.assignedToName ? `Assigned: ${ticket.assignedToName}` : "Unassigned"}
+                    </span>
                   </div>
                   {ticket.statusChangedAt && (
                     <div className="mt-1.5">

@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, CheckCircle2, Clock, AlertTriangle, User, Plus, X, Loader2 } from "lucide-react";
+import { Search, Filter, CheckCircle2, Clock, AlertTriangle, User, Plus, X, Loader2, UserPlus } from "lucide-react";
 import { useAppState } from "@/lib/app-context";
 import { formatDate, cn } from "@/lib/utils";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
+
+interface MaintenanceUser {
+  id: string;
+  name: string;
+}
 
 export default function AdminMaintenancePage() {
   const { tickets: maintenanceTickets, updateTicket } = useAppState();
@@ -13,13 +18,52 @@ export default function AdminMaintenancePage() {
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string }>({ id: "", name: "", role: "" });
+  const [maintenanceUsers, setMaintenanceUsers] = useState<MaintenanceUser[]>([]);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [assignError, setAssignError] = useState<{ ticketId: string; message: string } | null>(null);
 
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("user") || "{}");
       setCurrentUser({ id: stored.id || "", name: stored.name || "", role: stored.role || "" });
     } catch {}
+
+    fetch("/api/staff")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setMaintenanceUsers(
+            data
+              .filter((s: { role: string }) => s.role === "MAINTENANCE")
+              .map((s: { id: string; name: string }) => ({ id: s.id, name: s.name }))
+          );
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  async function handleAssign(ticketId: string, assignedToId: string) {
+    setAssigningId(ticketId);
+    setAssignError(null);
+    try {
+      const res = await fetch("/api/tickets", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: ticketId, assignedToId: assignedToId || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAssignError({ ticketId, message: data.error || "Failed to assign" });
+      } else {
+        // Refresh so the assignee name updates everywhere
+        window.location.reload();
+      }
+    } catch {
+      setAssignError({ ticketId, message: "Failed to assign" });
+    } finally {
+      setAssigningId(null);
+    }
+  }
 
   // Create ticket form state
   const [ticketTitle, setTicketTitle] = useState("");
@@ -205,6 +249,10 @@ export default function AdminMaintenancePage() {
                     <span className="text-xs text-slate-500">
                       At: <span className="font-medium text-slate-700">{formatDate(ticket.createdAt)}</span>
                     </span>
+                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                      <UserPlus className="w-3 h-3" />
+                      Assigned: <span className={cn("font-medium", ticket.assignedToName ? "text-emerald-700" : "text-slate-400 italic")}>{ticket.assignedToName || "Unassigned"}</span>
+                    </span>
                   </div>
                   {ticket.statusChangedAt && (
                     <div className="mt-1.5">
@@ -222,21 +270,39 @@ export default function AdminMaintenancePage() {
                 <StatusBadge status={ticket.status} />
                 <PriorityBadge priority={ticket.priority} />
                 {ticket.status !== "completed" && ticket.status !== "closed" && (
-                  <select
-                    className="mt-1 text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500 outline-none"
-                    defaultValue=""
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        updateTicket(ticket.id, { status: e.target.value as "open" | "in_progress" | "scheduled" | "completed", updatedAt: new Date().toISOString().split("T")[0] });
-                      }
-                    }}
-                  >
-                    <option value="">Update Status</option>
-                    <option value="open">Open</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="completed">Completed</option>
-                  </select>
+                  <>
+                    <select
+                      className="mt-1 text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500 outline-none"
+                      defaultValue=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          updateTicket(ticket.id, { status: e.target.value as "open" | "in_progress" | "scheduled" | "completed", updatedAt: new Date().toISOString().split("T")[0] });
+                        }
+                      }}
+                    >
+                      <option value="">Update Status</option>
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="scheduled">Scheduled</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                    <select
+                      className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500 outline-none disabled:opacity-50"
+                      value={ticket.assignedToId || ""}
+                      disabled={assigningId === ticket.id}
+                      onChange={(e) => handleAssign(ticket.id, e.target.value)}
+                    >
+                      <option value="">Unassigned</option>
+                      {maintenanceUsers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          Assign to {u.name}
+                        </option>
+                      ))}
+                    </select>
+                    {assignError?.ticketId === ticket.id && (
+                      <span className="text-[11px] text-red-600 max-w-[180px] text-right">{assignError.message}</span>
+                    )}
+                  </>
                 )}
               </div>
             </div>
