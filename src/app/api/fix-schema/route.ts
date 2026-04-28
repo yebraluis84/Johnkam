@@ -54,6 +54,8 @@ export async function GET() {
     { name: "prop_stripeAccountId", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "stripeAccountId" TEXT` },
     { name: "prop_stripeOnboarded", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "stripeOnboarded" BOOLEAN DEFAULT false` },
     { name: "prop_platformFeePercent", sql: `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "platformFeePercent" DOUBLE PRECISION DEFAULT 2.5` },
+    // User notification preferences
+    { name: "user_notifyOnNewTicket", sql: `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "notifyOnNewTicket" BOOLEAN DEFAULT true` },
   ];
 
   for (const stmt of alterStatements) {
