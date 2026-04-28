@@ -25,6 +25,7 @@ export default function StaffDashboardPage() {
   const [notifyOnNewTicket, setNotifyOnNewTicket] = useState(true);
   const [prefSaving, setPrefSaving] = useState(false);
   const [prefError, setPrefError] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<"open" | "in_progress" | "scheduled" | "completed">("open");
 
   useEffect(() => {
     try {
@@ -73,9 +74,24 @@ export default function StaffDashboardPage() {
   const scheduledCount = tickets.filter((t) => t.status === "scheduled").length;
   const completedCount = tickets.filter((t) => t.status === "completed").length;
 
-  const activeTickets = tickets.filter(
-    (t) => t.status !== "completed" && t.status !== "closed"
-  );
+  const filteredTickets = tickets.filter((t) => {
+    if (selectedStatus === "in_progress") return t.status === "in-progress" || t.status === "in_progress";
+    return t.status === selectedStatus;
+  });
+
+  const statusLabels: Record<typeof selectedStatus, string> = {
+    open: "Open",
+    in_progress: "In Progress",
+    scheduled: "Scheduled",
+    completed: "Completed",
+  };
+
+  const emptyMessages: Record<typeof selectedStatus, string> = {
+    open: "All caught up! No open tickets.",
+    in_progress: "Nothing in progress.",
+    scheduled: "Nothing scheduled.",
+    completed: "No completed tickets yet.",
+  };
 
   if (loading) {
     return (
@@ -127,9 +143,19 @@ export default function StaffDashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — clickable filters */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("open")}
+          aria-pressed={selectedStatus === "open"}
+          className={cn(
+            "bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md transition text-left cursor-pointer",
+            selectedStatus === "open"
+              ? "border-yellow-400 ring-2 ring-yellow-300"
+              : "border-slate-200/80 hover:border-yellow-200"
+          )}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Open</p>
@@ -139,8 +165,18 @@ export default function StaffDashboardPage() {
               <AlertTriangle className="w-6 h-6 text-yellow-500" />
             </div>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("in_progress")}
+          aria-pressed={selectedStatus === "in_progress"}
+          className={cn(
+            "bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md transition text-left cursor-pointer",
+            selectedStatus === "in_progress"
+              ? "border-blue-400 ring-2 ring-blue-300"
+              : "border-slate-200/80 hover:border-blue-200"
+          )}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">In Progress</p>
@@ -150,8 +186,18 @@ export default function StaffDashboardPage() {
               <Clock className="w-6 h-6 text-blue-500" />
             </div>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("scheduled")}
+          aria-pressed={selectedStatus === "scheduled"}
+          className={cn(
+            "bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md transition text-left cursor-pointer",
+            selectedStatus === "scheduled"
+              ? "border-purple-400 ring-2 ring-purple-300"
+              : "border-slate-200/80 hover:border-purple-200"
+          )}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Scheduled</p>
@@ -161,8 +207,18 @@ export default function StaffDashboardPage() {
               <Wrench className="w-6 h-6 text-purple-500" />
             </div>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("completed")}
+          aria-pressed={selectedStatus === "completed"}
+          className={cn(
+            "bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md transition text-left cursor-pointer",
+            selectedStatus === "completed"
+              ? "border-green-400 ring-2 ring-green-300"
+              : "border-slate-200/80 hover:border-green-200"
+          )}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Completed</p>
@@ -172,13 +228,13 @@ export default function StaffDashboardPage() {
               <CheckCircle2 className="w-6 h-6 text-green-500" />
             </div>
           </div>
-        </div>
+        </button>
       </div>
 
-      {/* Active Tickets */}
+      {/* Tickets — filtered by selected status card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">Active Tickets</h2>
+          <h2 className="font-semibold text-slate-900">{statusLabels[selectedStatus]} Tickets</h2>
           <Link
             href="/staff/tickets"
             className="text-sm text-orange-600 hover:text-orange-700 font-medium"
@@ -187,7 +243,7 @@ export default function StaffDashboardPage() {
           </Link>
         </div>
         <div className="divide-y divide-slate-100">
-          {activeTickets.slice(0, 8).map((ticket) => (
+          {filteredTickets.map((ticket) => (
             <div
               key={ticket.id}
               className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
@@ -225,10 +281,10 @@ export default function StaffDashboardPage() {
               </span>
             </div>
           ))}
-          {activeTickets.length === 0 && (
+          {filteredTickets.length === 0 && (
             <div className="p-8 text-center text-slate-400">
               <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-300" />
-              <p className="text-sm">All caught up! No active tickets.</p>
+              <p className="text-sm">{emptyMessages[selectedStatus]}</p>
             </div>
           )}
         </div>
